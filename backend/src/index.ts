@@ -47,10 +47,28 @@ async function bootstrap() {
     await fastify.register(dbPlugin);
     await fastify.register(authPlugin);
 
-    // 3. Register Health Endpoint
+    // 3. Register Health & Root Endpoints
+    fastify.get('/', async () => {
+      return { status: 'OK', message: 'fyxi API server' };
+    });
+    fastify.get('/api', async () => {
+      return { status: 'OK', message: 'fyxi API server' };
+    });
     fastify.get('/health', async () => {
       return { status: 'OK', uptime: process.uptime(), timestamp: new Date() };
     });
+
+    // 4. API Endpoints (Supported both with and without '/api' prefix for Nginx Proxy Manager compatibility)
+    const registerRoutes = async (basePrefix: string) => {
+      await fastify.register(authRoutes, { prefix: `${basePrefix}/auth` });
+      await fastify.register(profileRoutes, { prefix: `${basePrefix}/profiles` });
+      await fastify.register(checkoutRoutes, { prefix: `${basePrefix}/checkout` });
+      await fastify.register(adminRoutes, { prefix: `${basePrefix}/admin` });
+      await fastify.register(blogRoutes, { prefix: `${basePrefix}/blog` });
+    };
+
+    await registerRoutes('');
+    await registerRoutes('/api');
 
     // Global Unhandled Exception & Diagnostic Error Logger
     fastify.setErrorHandler(async (error, request, reply) => {
@@ -82,15 +100,6 @@ async function bootstrap() {
         error: statusCode === 500 ? 'Внутренняя ошибка сервера (зафиксировано в журнале ошибок)' : error.message,
       });
     });
-
-    // 4. API Endpoints
-    // Note: Caddy reverse proxy strips '/api' before proxying. Thus:
-    // '/api/auth/login' reaches Fastify as '/auth/login'.
-    await fastify.register(authRoutes, { prefix: '/auth' });
-    await fastify.register(profileRoutes, { prefix: '/profiles' });
-    await fastify.register(checkoutRoutes, { prefix: '/checkout' });
-    await fastify.register(adminRoutes, { prefix: '/admin' });
-    await fastify.register(blogRoutes, { prefix: '/blog' });
 
     // 5. Start Listening
     const port = Number(process.env.PORT) || 5010;
