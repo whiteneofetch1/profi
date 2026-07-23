@@ -394,8 +394,13 @@ function handleAddToCart() {
               <div>
                 <h2>⭐️ Отзывы и оценки клиентов</h2>
                 <p class="section-subtitle">
-                  Средний рейтинг: <strong class="rating-highlight">⭐ {{ averageRating }} / 5.0</strong> 
-                  ({{ reviewCount }} {{ reviewCount === 1 ? 'отзыв' : (reviewCount > 1 && reviewCount < 5 ? 'отзыва' : 'отзывов') }})
+                  <template v-if="reviewCount > 0">
+                    Средний рейтинг: <strong class="rating-highlight">⭐ {{ averageRating }} / 5.0</strong> 
+                    ({{ reviewCount }} {{ reviewCount === 1 ? 'отзыв' : (reviewCount > 1 && reviewCount < 5 ? 'отзыва' : 'отзывов') }})
+                  </template>
+                  <template v-else>
+                    <span class="text-gray-400">Пока нет отзывов (0)</span>
+                  </template>
                 </p>
               </div>
               <button class="btn-add-review" @click="isReviewModalOpen = true">

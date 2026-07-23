@@ -259,7 +259,7 @@ describe('E2E Worker/Developer Cabinet Lifecycle Tests', () => {
       headers: { Cookie: `token=${token}` },
     });
     expect(statsRes.statusCode).toBe(200);
-    expect(JSON.parse(statsRes.body).averageRating).toBe(5);
+    expect(JSON.parse(statsRes.body).averageRating).toBe(0);
 
     const briefsRes = await app.inject({
       method: 'GET',

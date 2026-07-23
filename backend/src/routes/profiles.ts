@@ -411,7 +411,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
       const averageRating = reviews.length > 0
         ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
-        : 5.0;
+        : 0;
 
       reply.send({
         reviews,
@@ -532,7 +532,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       });
 
       if (!devProfile) {
-        return reply.send({ reviews: [], averageRating: 5.0, count: 0 });
+        return reply.send({ reviews: [], averageRating: 0, count: 0 });
       }
 
       const reviews = await fastify.prisma.review.findMany({
@@ -542,7 +542,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
       const averageRating = reviews.length > 0
         ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
-        : 5.0;
+        : 0;
 
       reply.send({ reviews, averageRating, count: reviews.length });
     }
@@ -571,14 +571,14 @@ export default async function profileRoutes(fastify: FastifyInstance) {
           unlocksCount: 0,
           briefsCount: 0,
           reviewsCount: 0,
-          averageRating: 5.0,
+          averageRating: 0,
         });
       }
 
       const reviewsCount = devProfile.reviews.length;
       const averageRating = reviewsCount > 0
         ? Number((devProfile.reviews.reduce((acc, r) => acc + r.rating, 0) / reviewsCount).toFixed(1))
-        : 5.0;
+        : 0;
 
       reply.send({
         unlocksCount: devProfile.unlockedItems.length,

@@ -25,7 +25,7 @@ const stats = ref<{ unlocksCount: number; briefsCount: number; reviewsCount: num
   unlocksCount: 0,
   briefsCount: 0,
   reviewsCount: 0,
-  averageRating: 5.0,
+  averageRating: 0,
 });
 
 // Security tab state
@@ -448,7 +448,7 @@ async function handleSaveProfile() {
             <div class="kpi-card">
               <span class="kpi-icon">⭐️</span>
               <div class="kpi-info">
-                <span class="kpi-value">{{ stats.averageRating }} / 5.0</span>
+                <span class="kpi-value">{{ stats.reviewsCount > 0 ? `${stats.averageRating} / 5.0` : '—' }}</span>
                 <span class="kpi-label">Средний рейтинг</span>
               </div>
             </div>
