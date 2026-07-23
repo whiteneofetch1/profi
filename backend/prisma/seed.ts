@@ -267,6 +267,31 @@ async function main() {
         contactEmail: item.email,
         contactTelegram: item.telegram,
         contactPhone: item.phone,
+        cases: {
+          create: [
+            {
+              title: 'Porsche Russia Concept',
+              description: 'Интерактивный промо-лендинг нового электрокара с адаптивным Zero Block и пошаговой 3D-анимацией.',
+              techStack: ['Zero Block', 'Step-by-Step Animation', 'Custom CSS'],
+              coverUrl: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=1200&auto=format&fit=crop',
+              order: 1
+            },
+            {
+              title: 'Norse Jewelry E-commerce',
+              description: 'Интернет-магазин скандинавских ювелирных изделий с личным кабинетом, корзиной и интеграцией ЮKassa.',
+              techStack: ['E-commerce', 'Payment Integration', 'Tilda CRM'],
+              coverUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=1200&auto=format&fit=crop',
+              order: 2
+            },
+            {
+              title: 'Solitude — Architecture Bureau',
+              description: 'Минималистичный корпоративный сайт архитектурного бюро с тонкой сеткой и плавными переходами.',
+              techStack: ['Minimalism', 'Typography', 'Grid Design'],
+              coverUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
+              order: 3
+            }
+          ]
+        }
       },
     });
   }

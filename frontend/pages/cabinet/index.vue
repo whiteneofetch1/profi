@@ -737,34 +737,31 @@ async function handleSaveProfile() {
     <div v-if="isCaseModalOpen" class="modal-overlay" @click.self="closeCaseModal">
       <div class="modal-content" style="max-width: 600px; width: 100%;">
         <button class="modal-close" @click="closeCaseModal">×</button>
-        <h2>{{ editingCaseId ? 'Редактировать кейс' : 'Добавить кейс' }}</h2>
+        <h2>{{ editingCaseId ? 'Редактировать работу' : '🖼️ Добавить работу в портфолио' }}</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -0.5rem;">Загружайте скриншоты и описание ваших проектов. Заказчики увидят их прямо в вашем профиле.</p>
         <form @submit.prevent="saveCase" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
           <div class="form-group">
             <label>Название проекта *</label>
-            <input v-model="caseForm.title" type="text" class="form-input" required />
+            <input v-model="caseForm.title" type="text" class="form-input" required placeholder="например: Porsche Russia Concept" />
           </div>
           <div class="form-group">
             <label>Описание задачи и результата *</label>
-            <textarea v-model="caseForm.description" class="form-input" rows="4" required></textarea>
+            <textarea v-model="caseForm.description" class="form-input" rows="4" required placeholder="например: Интерактивный промо-лендинг нового электрокара с адаптивным Zero Block и пошаговой 3D-анимацией."></textarea>
           </div>
           <div class="form-group">
-            <UiImageUploader v-model="caseForm.coverUrl" label="Обложка проекта (Опционально)" placeholder="Загрузить обложку" />
+            <UiImageUploader v-model="caseForm.coverUrl" label="Скриншот / Обложка макета (Изображение)" placeholder="Загрузить изображение работы" />
           </div>
           <div class="form-group">
-            <label>Стек технологий (через запятую)</label>
-            <input v-model="caseForm.techStack" type="text" class="form-input" placeholder="Vue, Nuxt, Tailwind" />
+            <label>Теги / Технологии (через запятую)</label>
+            <input v-model="caseForm.techStack" type="text" class="form-input" placeholder="например: Zero Block, Step-by-Step Animation, Custom CSS" />
           </div>
           <div class="form-group">
-            <label>Ссылка на готовый проект (Опционально)</label>
-            <input v-model="caseForm.link" type="url" class="form-input" placeholder="https://..." />
-          </div>
-          <div class="form-group">
-            <label>Порядок отображения (чем меньше, тем раньше)</label>
-            <input v-model="caseForm.order" type="number" class="form-input" />
+            <label>Порядок отображения (необязательно)</label>
+            <input v-model="caseForm.order" type="number" class="form-input" placeholder="0" />
           </div>
           <div class="form-actions" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 1rem;">
             <button type="button" class="btn btn-secondary" @click="closeCaseModal">Отмена</button>
-            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <button type="submit" class="btn btn-primary">Сохранить работу</button>
           </div>
         </form>
       </div>

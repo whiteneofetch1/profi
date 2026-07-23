@@ -343,10 +343,10 @@ function handleAddToCart() {
             </div>
           </section>
 
-          <!-- PORTFOLIO SHOWCASE GRID (МОИ РАБОТЫ) -->
+          <!-- PORTFOLIO SHOWCASE GRID (МОИ РАБОТЫ В ZERO BLOCK) -->
           <section class="portfolio-section" v-if="profile.cases && profile.cases.length > 0">
             <h2>🖼️ Избранные проекты и кейсы</h2>
-            <p class="section-subtitle">Работы выполненные специалистом:</p>
+            <p class="section-subtitle">Работы выполненные специалистом на платформе Tilda в Zero Block:</p>
 
             <div class="showcase-grid">
               <div v-for="work in profile.cases" :key="work.id" class="showcase-card">
@@ -356,34 +356,24 @@ function handleAddToCart() {
                   <img 
                     v-if="work.coverUrl"
                     :src="work.coverUrl" 
-                    :alt="`${work.title} — кейс специалиста ${profile.firstName} ${profile.lastName}`" 
+                    :alt="`${work.title} — веб-дизайн выполненный специалистом ${profile.firstName} ${profile.lastName} на платформе Tilda`" 
                     class="showcase-image"
                     loading="lazy"
                     style="width: 100%; height: 100%; object-fit: cover;"
                   />
-                  <div v-else style="background: #2a2a35; display: flex; align-items: center; justify-content: center; color: #666; height: 100%;">Нет обложки</div>
+                  <div v-else style="background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%); display: flex; align-items: center; justify-content: center; color: #a5b4fc; height: 100%; font-weight: 600; font-size: 1.1rem; padding: 1rem; text-align: center;">
+                    🎨 {{ work.title }}
+                  </div>
                 </div>
 
                 <div class="showcase-card-body" style="padding: 1.5rem;">
                   <h3 class="showcase-title" style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.25rem;">{{ work.title }}</h3>
-                  <p class="showcase-desc" style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;">{{ work.description }}</p>
+                  <p class="showcase-desc" style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; font-size: 0.95rem;">{{ work.description }}</p>
                   <div class="showcase-tags" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <span v-for="t in work.techStack" :key="t" class="case-tag" style="background: rgba(99, 102, 241, 0.1); color: #818cf8; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">#{{ t }}</span>
-                  </div>
-                  <div v-if="work.link" style="margin-top: 1rem;">
-                    <a :href="work.link" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); font-size: 0.9rem; font-weight: 500;">🔗 Открыть проект</a>
+                    <span v-for="t in work.techStack" :key="t" class="case-tag" style="background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); padding: 3px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 500;">#{{ t }}</span>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-          
-          <section class="portfolio-section" v-else-if="profile.portfolioLinks && profile.portfolioLinks.length > 0">
-            <h2>🔗 Ссылки на портфолио</h2>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
-              <a v-for="link in profile.portfolioLinks" :key="link" :href="link" target="_blank" class="btn btn-secondary" style="background: var(--surface-light); padding: 0.75rem 1.5rem; border-radius: 8px; color: white;">
-                {{ link.replace(/^https?:\/\//, '').split('/')[0] }}
-              </a>
             </div>
           </section>
 
