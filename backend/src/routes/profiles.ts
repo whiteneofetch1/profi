@@ -308,6 +308,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/:id/reviews',
     {
+      preHandler: [fastify.authenticate],
       schema: {
         params: Type.Object({ id: Type.String() }),
         body: Type.Object({
@@ -318,6 +319,10 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest<{ Params: { id: string }, Body: { authorName: string, rating: number, comment: string } }>, reply) => {
+      if (request.user.role !== 'CLIENT') {
+        return reply.status(403).send({ error: 'Только клиенты могут оставлять отзывы' });
+      }
+
       const { id } = request.params;
       const { authorName, rating, comment } = request.body;
 
@@ -327,15 +332,52 @@ export default async function profileRoutes(fastify: FastifyInstance) {
         return reply.status(404).send({ error: 'Specialist profile not found' });
       }
 
-      const review = await fastify.prisma.review.create({
-        data: {
+      // Check if client has a COMPLETED purchase for this profile
+      const unlockRecord = await fastify.prisma.unlockedProfile.findFirst({
+        where: {
           devProfileId: profile.id,
-          authorName: authorName.trim(),
-          rating,
-          comment: comment.trim(),
-          isVerified: true,
+          purchase: {
+            clientId: request.user.id,
+            status: 'COMPLETED',
+          },
         },
       });
+
+      if (!unlockRecord) {
+        return reply.status(403).send({ error: 'Вы не можете оставить отзыв, так как не покупали контакты этого специалиста' });
+      }
+
+      // Prevent duplicate reviews from same client on same profile
+      const existingReview = await fastify.prisma.review.findFirst({
+        where: {
+          devProfileId: profile.id,
+          clientId: request.user.id,
+        },
+      });
+
+      let review;
+      if (existingReview) {
+        review = await fastify.prisma.review.update({
+          where: { id: existingReview.id },
+          data: {
+            authorName: authorName.trim(),
+            rating,
+            comment: comment.trim(),
+            isVerified: true,
+          },
+        });
+      } else {
+        review = await fastify.prisma.review.create({
+          data: {
+            devProfileId: profile.id,
+            clientId: request.user.id,
+            authorName: authorName.trim(),
+            rating,
+            comment: comment.trim(),
+            isVerified: true,
+          },
+        });
+      }
 
       reply.send({ success: true, message: 'Спасибо за отзыв! Отзыв успешно опубликован.', review });
     }
