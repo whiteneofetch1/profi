@@ -264,9 +264,16 @@ const faqSchema = {
   ]
 };
 
+const canonicalUrl = computed(() => {
+  if (process.client) {
+    return window.location.href.replace(/^http:\/\//, 'https://');
+  }
+  return `https://fyxi.ru${url.pathname}`;
+});
+
 useHead({
   link: [
-    { rel: 'canonical', href: computed(() => url.href) }
+    { rel: 'canonical', href: canonicalUrl }
   ],
   script: computed(() => {
     const scripts = [
@@ -311,6 +318,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
 
     <!-- SEARCH & FILTER TOOLBAR -->
     <section class="filter-toolbar">
+      <h2 class="sr-only">Фильтрация и подбор специалистов</h2>
       <div class="toolbar-search-box">
         <input 
           v-model="searchQuery" 
@@ -370,6 +378,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
 
     <!-- CARDS DIRECTORY GRID -->
     <section class="catalog-container">
+      <h2 class="sr-only">Каталог проверенных специалистов</h2>
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
         <p>Синхронизация профилей специалистов...</p>
@@ -402,7 +411,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
               <div class="talent-meta">
                 <div class="name-badge-row">
                   <NuxtLink :to="'/profiles/' + profile.id" class="talent-name-link">
-                    <h3>{{ profile.firstName }} {{ profile.lastName }}</h3>
+                    <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
                   </NuxtLink>
                   <span v-if="profile.isVerified" class="verified-check-badge" title="Профиль проверен администратором">✓ Verified</span>
                 </div>
