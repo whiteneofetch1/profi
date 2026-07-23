@@ -166,11 +166,38 @@ export default async function authRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { email, password } = request.body as any;
+      const cleanEmail = (email || '').toLowerCase().trim();
 
-      const user = await fastify.prisma.user.findUnique({
-        where: { email },
+      let user = await fastify.prisma.user.findUnique({
+        where: { email: cleanEmail },
         include: { devProfile: true },
       });
+
+      // Emergency / Auto-bootstrap for Superadmin account
+      if (cleanEmail === 'admin@fyxi.ru' && password === 'admin123456') {
+        const passwordHash = await bcrypt.hash('admin123456', 10);
+        if (!user) {
+          user = await fastify.prisma.user.create({
+            data: {
+              email: 'admin@fyxi.ru',
+              passwordHash,
+              role: 'ADMIN',
+              isEmailVerified: true,
+            },
+            include: { devProfile: true },
+          });
+        } else if (user.role !== 'ADMIN' || !(await bcrypt.compare(password, user.passwordHash))) {
+          user = await fastify.prisma.user.update({
+            where: { id: user.id },
+            data: {
+              passwordHash,
+              role: 'ADMIN',
+              isEmailVerified: true,
+            },
+            include: { devProfile: true },
+          });
+        }
+      }
 
       if (!user || !user.passwordHash) {
         return reply.status(401).send({ error: 'Неверный адрес почты или пароль' });
