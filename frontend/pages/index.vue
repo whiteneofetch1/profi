@@ -19,6 +19,7 @@ const selectedSpecialization = ref('all');
 const searchQuery = ref('');
 const filterVerifiedOnly = ref(false);
 const filterAvailability = ref('all');
+const filterPriceRange = ref('all');
 const selectedSkill = ref('');
 const sortBy = ref('verified');
 
@@ -53,39 +54,27 @@ if (initialProfiles.value && initialProfiles.value.length > 0) {
 }
 
 // Fetch profiles on mount and filter changes
-async function loadProfiles() {
-  const config = useRuntimeConfig();
+const loadProfiles = async () => {
   loading.value = true;
   errorMsg.value = '';
   try {
-    let url = `${config.public.apiUrl}/profiles`;
-    const params: string[] = [];
-    
-    if (selectedSpecialization.value !== 'all') {
-      params.push(`specialization=${selectedSpecialization.value}`);
-    }
-    if (filterAvailability.value !== 'all') {
-      params.push(`availability=${filterAvailability.value}`);
-    }
-    if (filterVerifiedOnly.value) {
-      params.push(`verified=true`);
-    }
+    const config = useRuntimeConfig();
+    const queryParams: any = {};
+    if (selectedSpecialization.value !== 'all') queryParams.specialization = selectedSpecialization.value;
+    if (filterVerifiedOnly.value) queryParams.verified = true;
+    if (filterAvailability.value !== 'all') queryParams.availability = filterAvailability.value;
 
-    if (params.length > 0) {
-      url += `?${params.join('&')}`;
-    }
-
-    profiles.value = await $fetch<any[]>(url);
-  } catch (err) {
-    if (profiles.value.length === 0) {
-      errorMsg.value = 'Не удалось загрузить каталог специалистов. Пожалуйста, попробуйте позже.';
-    }
+    const data = await $fetch<any[]>(`${config.public.apiUrl}/profiles`, {
+      params: queryParams,
+    });
+    profiles.value = data || [];
+  } catch (err: any) {
+    errorMsg.value = err.data?.error || 'Не удалось загрузить каталог специалистов';
   } finally {
     loading.value = false;
   }
-}
+};
 
-// Watch filters to reload profiles
 watch([selectedSpecialization, filterVerifiedOnly, filterAvailability], () => {
   loadProfiles();
 });
@@ -96,7 +85,7 @@ onMounted(() => {
   }
 });
 
-// Client-side text & skill filtering + sorting
+// Client-side text, skill & price range filtering + sorting
 const filteredProfiles = computed(() => {
   let result = [...profiles.value];
 
@@ -113,6 +102,17 @@ const filteredProfiles = computed(() => {
       p.title.toLowerCase().includes(q) ||
       p.skills.some((s: string) => s.toLowerCase().includes(q))
     );
+  }
+
+  // Price Range Filter
+  if (filterPriceRange.value !== 'all') {
+    result = result.filter(p => {
+      const rate = p.hourlyRate || 0;
+      if (filterPriceRange.value === 'under_1500') return rate > 0 && rate <= 1500;
+      if (filterPriceRange.value === '1500_3000') return rate > 1500 && rate <= 3000;
+      if (filterPriceRange.value === 'over_3000') return rate > 3000;
+      return true;
+    });
   }
 
   // Apply dynamic sorting
@@ -360,6 +360,13 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
             <option value="price_asc">По цене: сначала недорогие</option>
             <option value="price_desc">По цене: сначала дорогие</option>
             <option value="experience_desc">По опыту работы (лет)</option>
+          </select>
+
+          <select v-model="filterPriceRange" class="filter-select" aria-label="Фильтр по часовой ставке и стоимости">
+            <option value="all">Любой бюджет</option>
+            <option value="under_1500">До 1 500 ₽ / час</option>
+            <option value="1500_3000">1 500 — 3 000 ₽ / час</option>
+            <option value="over_3000">От 3 000 ₽ / час (Премиум)</option>
           </select>
 
           <select v-model="filterAvailability" class="filter-select" aria-label="Фильтр по статусу занятости специалистов">
