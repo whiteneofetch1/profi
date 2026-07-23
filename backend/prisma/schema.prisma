@@ -1,0 +1,172 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String         @id @default(uuid())
+  email             String         @unique
+  passwordHash      String?        // Nullable for auto-generated guest accounts
+  role              Role           @default(CLIENT)
+  resetToken        String?        // Password reset token
+  resetTokenExpires DateTime?      // Expiration time of reset token
+  lastActive        DateTime       @default(now())
+  createdAt         DateTime       @default(now())
+  
+  devProfile        DevProfile?
+  clientProfile     ClientProfile?
+  purchases         Purchase[]     @relation("ClientPurchases")
+}
+
+enum Role {
+  CLIENT
+  DEVELOPER
+  ADMIN
+}
+
+model DevProfile {
+  id              String       @id @default(uuid())
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName       String
+  lastName        String
+  title           String       // e.g., "Senior UX/UI Designer"
+  specialization  SpecType     @default(DEVELOPER)
+  bio             String
+  experienceYears Int
+  skills          String[]     // array of skills e.g., ["Vue", "Fastify"]
+  portfolioLinks  String[]     // Behance, GitHub, Dribbble, etc.
+  
+  // BUDGET & AVAILABILITY
+  hourlyRate      Int?         // Expected hourly rate in RUB (e.g. 2500)
+  monthlySalary   Int?         // Expected full-time monthly salary in RUB (e.g. 200000)
+  availability    AvailStatus  @default(FREE)
+  isVerified      Boolean      @default(false) // Verified by admin check
+  isApproved      Boolean      @default(false) // Approved for public display
+  
+  // GATED CONTACT DATA (Hidden from clients until purchased)
+  contactEmail    String
+  contactTelegram String
+  contactPhone    String?
+  
+  createdAt       DateTime     @default(now())
+  unlockedItems   UnlockedProfile[]
+  reviews         Review[]
+}
+
+enum SpecType {
+  DEVELOPER
+  DESIGNER
+  FULLSTACK
+  OTHER
+}
+
+enum AvailStatus {
+  FREE              // "Свободен для проектов"
+  BUSY              // "Занят"
+  OPEN_FOR_OFFERS   // "Рассматриваю предложения"
+}
+
+model ClientProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName String?
+  website     String?
+}
+
+// Transaction purchase record
+model Purchase {
+  id              String            @id @default(uuid())
+  clientId        String
+  client          User              @relation("ClientPurchases", fields: [clientId], references: [id], onDelete: Cascade)
+  amountPaid      Int               // Total ruble amount of transaction
+  status          PayStatus         @default(PENDING)
+  paymentId       String?           @unique // YooKassa transaction ID
+  isGuestPurchase Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  
+  unlockedProfiles UnlockedProfile[]
+}
+
+// Mapping table supporting bulk checkouts (Multiple developers unlocked in one purchase)
+model UnlockedProfile {
+  id           String     @id @default(uuid())
+  purchaseId   String
+  purchase     Purchase   @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  devProfileId String
+  devProfile   DevProfile @relation(fields: [devProfileId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([purchaseId, devProfileId])
+}
+
+enum PayStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model PlatformConfig {
+  id             Int      @id @default(1)
+  flatRatePrice  Int      @default(500)   // Single profile ruble price
+  bundleCount    Int      @default(5)     // e.g., Bundle of 5
+  bundlePrice    Int      @default(2000)  // Bundle discount price (2000 RUB instead of 2500)
+}
+
+model BlogPost {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  title       String
+  description String
+  category    String
+  readTime    String
+  author      String
+  authorRole  String
+  keywords    String[]
+  content     String   @db.Text
+  publishDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+// SYSTEM ERROR DIAGNOSTIC LOGS
+model ErrorLog {
+  id          String     @id @default(uuid())
+  level       ErrorLevel @default(ERROR)
+  source      String     // FRONTEND, BACKEND_API, DATABASE, AUTH, PAYMENT
+  message     String     // Short error summary
+  stack       String?    @db.Text // Full un-truncated stack trace
+  path        String?    // URL path or API route
+  method      String?    // GET, POST, etc.
+  statusCode  Int?       // HTTP status code
+  userEmail   String?    // Authenticated user email if available
+  ipAddress   String?
+  userAgent   String?
+  resolved    Boolean    @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime   @default(now())
+}
+
+enum ErrorLevel {
+  WARN
+  ERROR
+  CRITICAL
+}
+
+// REVIEWS & RATINGS MODEL
+model Review {
+  id           String     @id @default(uuid())
+  devProfileId String
+  devProfile   DevProfile @relation(fields: [devProfileId], references: [id], onDelete: Cascade)
+  clientId     String?
+  authorName   String
+  rating       Int        @default(5) // 1 to 5 stars
+  comment      String     @db.Text
+  isVerified   Boolean    @default(true) // Verified purchase review
+  createdAt    DateTime   @default(now())
+}
+

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cyberGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="blurFilter" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Dark container background -->
+  <rect width="512" height="512" rx="128" fill="#030303" />
+  <rect width="504" height="504" x="4" y="4" rx="124" fill="none" stroke="url(#cyberGlow)" stroke-width="8" stroke-opacity="0.3" />
+
+  <!-- Outer ambient glow circle -->
+  <circle cx="256" cy="256" r="160" fill="url(#cyberGlow)" opacity="0.15" filter="url(#blurFilter)" />
+
+  <!-- Monogram Logo Symbol: pT -->
+  <g fill="none" stroke="url(#cyberGlow)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+    <!-- P character curve -->
+    <path d="M 170 360 V 152 H 240 C 285 152, 310 175, 310 215 C 310 255, 285 278, 240 278 H 170" />
+    <!-- T character bar & stem -->
+    <path d="M 280 152 H 370" stroke-width="32" />
+    <path d="M 325 152 V 360" stroke-width="32" />
+  </g>
+  
+  <!-- Glowing Dot Accent -->
+  <circle cx="376" cy="360" r="18" fill="#06b6d4" />
+</svg>

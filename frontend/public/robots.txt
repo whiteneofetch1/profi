@@ -1,0 +1,17 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /profiles/*
+Disallow: /cabinet/
+Disallow: /cabinet/*
+Disallow: /admin/
+Disallow: /admin/*
+
+# Host & Sitemap
+Host: fyxi.ru
+Sitemap: https://fyxi.ru/sitemap.xml
+
+# LLM Agent Resources
+Sitemap: https://fyxi.ru/llm.txt

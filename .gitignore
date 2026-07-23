@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment files & secrets
+.env
+.env.*
+!.env.example
+
+# Nuxt 3 & Frontend build artifacts
+frontend/.nuxt/
+frontend/.output/
+frontend/dist/
+.nuxt/
+.output/
+
+# Backend build artifacts
+backend/dist/
+dist/
+
+# PM2 & Logs
+.pm2/
+*.log
+logs/
+
+# System / OS
+.DS_Store
+Thumbs.db

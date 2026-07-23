@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fyxi — Премиальный маркетплейс дизайнеров и разработчиков</title>
+  
+  <!-- Google Fonts: Space Grotesk & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript">
+      (function(m,e,t,r,i,k,a){
+          m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+          m[i].l=1*new Date();
+          for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+          k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+      })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110952885', 'ym');
+
+      ym(110952885, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+  </script>
+  <noscript><div><img src="https://mc.yandex.ru/watch/110952885" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+  <!-- /Yandex.Metrika counter -->
+
+  <style>
+    /* --- DESIGN SYSTEM & CSS VARIABLES --- */
+    :root {
+      --bg-dark: #030303;
+      --bg-card: rgba(18, 18, 26, 0.65);
+      --bg-surface: #0b0a14;
+      --border-glow: rgba(255, 255, 255, 0.06);
+      --border-glow-hover: rgba(255, 255, 255, 0.12);
+      
+      /* Glowing Accents */
+      --accent-violet: #8b5cf6; /* Designer glow */
+      --accent-violet-rgb: 139, 92, 246;
+      --accent-cyan: #06b6d4;   /* Developer glow */
+      --accent-cyan-rgb: 6, 182, 212;
+      
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --gradient-cyber: linear-gradient(135deg, var(--accent-violet) 0%, var(--accent-cyan) 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    h1, h2, h3, h4, .font-title {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    /* --- DECORATIVE BACKGROUNDS --- */
+    .bg-glow-purple {
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-glow-cyan {
+      position: absolute;
+      top: 30%;
+      right: -10%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* --- HEADER / NAVIGATION --- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(3, 3, 3, 0.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-glow);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--gradient-cyber);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-cyan);
+      display: inline-block;
+      box-shadow: 0 0 10px var(--accent-cyan);
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--text-primary);
+    }
+
+    .cart-btn {
+      position: relative;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glow);
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .cart-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .cart-badge {
+      background: var(--accent-violet);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 20px;
+      font-weight: 600;
+      box-shadow: 0 0 8px var(--accent-violet);
+    }
+
+    /* --- HERO SECTION --- */
+    .hero-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 6rem 2rem 4rem;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .badge-promo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      color: #c084fc;
+      padding: 0.5rem 1rem;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.05);
+    }
+
+    .hero-section h1 {
+      font-size: 4rem;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+    }
+
+    .hero-gradient-text {
+      background: var(--gradient-cyber);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+
+    .hero-section p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      font-weight: 300;
+    }
+
+    /* --- CATALOG CONTROLS --- */
+    .catalog-controls {
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .filter-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.3rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-glow);
+    }
+
+    .filter-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 9px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-tab.active {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .flat-price-info {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glow);
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .price-tag-neon {
+      color: var(--accent-cyan);
+      font-weight: 600;
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+    }
+
+    /* --- SPECIALIST CARDS GRID --- */
+    .catalog-container {
+      max-width: 1200px;
+      margin: 0 auto 6rem;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 2.5rem;
+    }
+
+    /* Card Perspective wrapper */
+    .card-wrapper {
+      perspective: 1000px;
+    }
+
+    .talent-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 24px;
+      padding: 2rem;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    /* Glow based on type */
+    .talent-card.designer:hover {
+      border-color: rgba(var(--accent-violet-rgb), 0.4);
+      box-shadow: 0 15px 40px -10px rgba(var(--accent-violet-rgb), 0.15),
+                  0 0 1px 1px rgba(var(--accent-violet-rgb), 0.1);
+    }
+
+    .talent-card.developer:hover {
+      border-color: rgba(var(--accent-cyan-rgb), 0.4);
+      box-shadow: 0 15px 40px -10px rgba(var(--accent-cyan-rgb), 0.15),
+                  0 0 1px 1px rgba(var(--accent-cyan-rgb), 0.1);
+    }
+
+    .talent-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      margin-bottom: 1.5rem;
+      transform: translateZ(20px);
+    }
+
+    .avatar-frame {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      position: relative;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .avatar-glow {
+      position: absolute;
+      inset: -2px;
+      border-radius: 20px;
+      background: var(--gradient-cyber);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .talent-card:hover .avatar-glow {
+      opacity: 0.4;
+    }
+
+    .talent-meta h3 {
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .spec-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .designer .spec-badge {
+      color: #d8b4fe;
+    }
+
+    .developer .spec-badge {
+      color: #99f6e4;
+    }
+
+    .talent-experience {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transform: translateZ(15px);
+    }
+
+    .talent-bio {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      margin-bottom: 1.5rem;
+      height: 70px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      transform: translateZ(10px);
+    }
+
+    .skills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      transform: translateZ(15px);
+    }
+
+    .skill-chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glow);
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      transition: all 0.2s ease;
+    }
+
+    .talent-card:hover .skill-chip {
+      border-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    /* --- THE GATED ACCESS AREA (BLUR) --- */
+    .gated-contact-section {
+      margin-top: auto;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-glow);
+      border-radius: 16px;
+      padding: 1.2rem;
+      position: relative;
+      overflow: hidden;
+      transform: translateZ(25px);
+    }
+
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      filter: blur(12px);
+      user-select: none;
+      pointer-events: none;
+      transition: filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .contact-icon {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* Lock Overlay */
+    .blur-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(11, 10, 20, 0.3);
+      backdrop-filter: blur(2px);
+      transition: all 0.5s ease;
+      z-index: 5;
+    }
+
+    .unlock-btn {
+      background: var(--gradient-cyber);
+      border: none;
+      color: #fff;
+      padding: 0.7rem 1.4rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .unlock-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+    }
+
+    .unlock-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    /* Unlocked State */
+    .talent-card.unlocked .contact-list {
+      filter: blur(0);
+      user-select: text;
+      pointer-events: auto;
+    }
+
+    .talent-card.unlocked .blur-overlay {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.1);
+    }
+
+    .talent-card.unlocked .gated-contact-section {
+      border-color: rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.03);
+      animation: unlockGlow 1s ease forwards;
+    }
+
+    @keyframes unlockGlow {
+      0% { box-shadow: 0 0 0px rgba(34, 197, 94, 0); }
+      50% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); }
+      100% { box-shadow: 0 0 0px rgba(34, 197, 94, 0); }
+    }
+
+    /* --- SIDE-OVER DRAWER (CHECKOUT CART) --- */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: -450px;
+      width: 100%;
+      max-width: 440px;
+      height: 100%;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-glow);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8);
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 2.5rem 2rem;
+    }
+
+    .drawer-overlay.open .cart-drawer {
+      right: 0;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .close-drawer-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .close-drawer-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .drawer-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .cart-items-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .cart-item-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glow);
+      padding: 1rem;
+      border-radius: 16px;
+      position: relative;
+    }
+
+    .cart-item-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .cart-item-details {
+      flex: 1;
+    }
+
+    .cart-item-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .cart-item-role {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .remove-cart-item {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      font-size: 0.85rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .remove-cart-item:hover {
+      opacity: 1;
+    }
+
+    .cart-summary {
+      border-top: 1px solid var(--border-glow);
+      padding-top: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .summary-row.total {
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      font-weight: 700;
+      margin-top: 1rem;
+      border-top: 1px dashed var(--border-glow);
+      padding-top: 1rem;
+    }
+
+    .checkout-submit-btn {
+      width: 100%;
+      background: var(--gradient-cyber);
+      border: none;
+      color: #fff;
+      padding: 1.1rem;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkout-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(139, 92, 246, 0.6);
+    }
+
+    .empty-cart-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .empty-cart-icon {
+      font-size: 3rem;
+      opacity: 0.4;
+    }
+
+    /* --- PAYMENT DIALOG SIMULATOR --- */
+    .payment-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .payment-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .payment-box {
+      background: #111019;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      text-align: center;
+      position: relative;
+    }
+
+    .payment-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-bottom: 2rem;
+    }
+
+    .payment-provider-badge {
+      background: #00bf85;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    .payment-loading {
+      margin: 2rem 0;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.05);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .payment-box h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .payment-box p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .payment-cancel {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .payment-cancel:hover {
+      color: var(--text-primary);
+    }
+
+    /* --- TOAST NOTIFICATIONS --- */
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      left: 2rem;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .toast {
+      background: rgba(18, 18, 26, 0.9);
+      border-left: 4px solid var(--accent-cyan);
+      border-top: 1px solid var(--border-glow);
+      border-right: 1px solid var(--border-glow);
+      border-bottom: 1px solid var(--border-glow);
+      color: var(--text-primary);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      transform: translateX(-120%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(12px);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast-success {
+      border-left-color: #22c55e;
+    }
+
+    /* --- FOOTER & ARTICLES TEASER --- */
+    .seo-teaser-section {
+      max-width: 1200px;
+      margin: 0 auto 6rem;
+      padding: 0 2rem;
+      border-top: 1px solid var(--border-glow);
+      padding-top: 5rem;
+    }
+
+    .seo-teaser-header {
+      margin-bottom: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .seo-teaser-header h2 {
+      font-size: 2.25rem;
+    }
+
+    .seo-teaser-header p {
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .article-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 2.5rem;
+    }
+
+    .article-card {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border-glow);
+      border-radius: 20px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .article-card:hover {
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .article-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.08);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .article-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .article-card p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .article-link {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-glow);
+      padding: 4rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BACKGROUND DECORATIONS -->
+  <div class="bg-glow-purple"></div>
+  <div class="bg-glow-cyan"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo">profiTilda<span class="logo-dot"></span></a>
+      <nav>
+        <a href="#" class="active">Каталог</a>
+        <a href="#articles">Статьи (SEO)</a>
+        <a href="#" onclick="showToast('Кабинет специалиста будет доступен в Nuxt-приложении!')">Разработчикам</a>
+        <button class="cart-btn" onclick="toggleDrawer(true)">
+          <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M17 18c-1.11 0-2 .89-2 2a2 2 0 0 0 2 2 2 2 0 0 0 2-2c0-1.11-.89-2-2-2M7 18c-1.11 0-2 .9 2 2a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2m2.84-4h6.06c.75 0 1.41-.41 1.75-1.03l3.58-6.47c.37-.63-.09-1.5-.82-1.5H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96a2 2 0 0 0 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"/>
+          </svg>
+          Корзина
+          <span class="cart-badge" id="cart-count">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="badge-promo">
+      <span class="logo-dot" style="background-color: var(--accent-violet); box-shadow: 0 0 10px var(--accent-violet);"></span>
+      Интерактивный прототип платформы
+    </div>
+    <h1>Покупайте контакты лучших специалистов<br>как <span class="hero-gradient-text">готовые IT-продукты</span></h1>
+    <p>Каталог топовых дизайнеров и разработчиков. Изучайте их открытые портфолио, опыт и стек. Разблокируйте прямые контакты в один клик.</p>
+  </section>
+
+  <!-- CATALOG CONTROL BAR -->
+  <div class="catalog-controls">
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterCatalog('all', this)">Все специалисты</button>
+      <button class="filter-tab" onclick="filterCatalog('developer', this)">Разработчики</button>
+      <button class="filter-tab" onclick="filterCatalog('designer', this)">Дизайнеры</button>
+    </div>
+    <div class="flat-price-info">
+      Фиксированная стоимость открытия: <span class="price-tag-neon">500 ₽</span>
+    </div>
+  </div>
+
+  <!-- SPECIALIST CARDS SECTION -->
+  <main class="catalog-container">
+    <div class="cards-grid" id="talent-grid">
+      
+      <!-- CARD 1: DESIGNER -->
+      <div class="card-wrapper" data-specialization="designer">
+        <div class="talent-card designer" id="card-1" onmousemove="tiltCard(event, this)" onmouseleave="resetCard(this)">
+          <div class="talent-card-header">
+            <div class="avatar-frame">
+              🎨
+              <div class="avatar-glow"></div>
+            </div>
+            <div class="talent-meta">
+              <h3>Алексей Котов</h3>
+              <span class="spec-badge">Senior UI/UX Designer</span>
+            </div>
+          </div>
+          <div class="talent-experience">
+            💼 Опыт: 6 лет • ⭐️ Рейтинг: 4.9
+          </div>
+          <div class="talent-bio">
+            Создаю высококонверсионные интерфейсы для финтех и e-commerce продуктов. Большой опыт работы с дизайн-системами, интерактивными прототипами в Figma и 3D-графикой в Spline.
+          </div>
+          <div class="skills-container">
+            <span class="skill-chip">Figma</span>
+            <span class="skill-chip">UX Research</span>
+            <span class="skill-chip">Spline 3D</span>
+            <span class="skill-chip">Mobile Web</span>
+            <span class="skill-chip">Webflow</span>
+          </div>
+          
+          <!-- Gated Contact details -->
+          <div class="gated-contact-section">
+            <div class="contact-list">
+              <div class="contact-item">
+                <span style="font-size: 1.1rem;">✉️</span>
+                <span>alex.kotov@design.pro</span>
+              </div>
+              <div class="contact-item">
+                <span style="font-size: 1.1rem;">✈️</span>
+                <span>@kotov_designer</span>
+              </div>
+            </div>
+            <div class="blur-overlay">
+              <button class="unlock-btn" onclick="addToCart('1', 'Алексей Котов', 'Senior UI/UX Designer', '🎨')">
+                <svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2 2 2 0 0 0 2 2m6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2m-6-5c1.66 0 3 1.34 3 3v2H9V6c0-1.66 1.34-3 3-3z"/></svg>
+                Открыть контакт • 500 ₽
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: DEVELOPER -->
+      <div class="card-wrapper" data-specialization="developer">
+        <div class="talent-card developer" id="card-2" onmousemove="tiltCard(event, this)" onmouseleave="resetCard(this)">
+          <div class="talent-card-header">
+            <div class="avatar-frame">
+              ⚡️
+              <div class="avatar-glow"></div>
+            </div>
+            <div class="talent-meta">
+              <h3>Дмитрий Шехов</h3>
+              <span class="spec-badge">Lead Node.js / Fastify Developer</span>
+            </div>
+          </div>
+          <div class="talent-experience">
+            💼 Опыт: 8 лет • ⭐️ Рейтинг: 5.0
+          </div>
+          <div class="talent-bio">
+            Специализируюсь на проектировании архитектуры микросервисов с ультранизким временем отклика. Эксперт по Fastify, NestJS, PostgreSQL транзакциям, Prisma и Redis кэшированию.
+          </div>
+          <div class="skills-container">
+            <span class="skill-chip">Fastify</span>
+            <span class="skill-chip">PostgreSQL</span>
+            <span class="skill-chip">TypeScript</span>
+            <span class="skill-chip">Prisma</span>
+            <span class="skill-chip">Docker</span>
+            <span class="skill-chip">Redis</span>
+          </div>
+          
+          <!-- Gated Contact details -->
+          <div class="gated-contact-section">
+            <div class="contact-list">
+              <div class="contact-item">
+                <span style="font-size: 1.1rem;">✉️</span>
+                <span>dmitry.shekhov@backend.dev</span>
+              </div>
+              <div class="contact-item">
+                <span style="font-size: 1.1rem;">✈️</span>
+                <span>@shekhov_backend</span>
+              </div>
+            </div>
+            <div class="blur-overlay">
+              <button class="unlock-btn" onclick="addToCart('2', 'Дмитрий Шехов', 'Lead Node.js Developer', '⚡️')">
+                <svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2 2 2 0 0 0 2 2m6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2m-6-5c1.66 0 3 1.34 3 3v2H9V6c0-1.66 1.34-3 3-3z"/></svg>
+                Открыть контакт • 500 ₽
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: DEVELOPER -->
+      <div class="card-wrapper" data-specialization="developer">
+        <div class="talent-card developer" id="card-3" onmousemove="tiltCard(event, this)" onmouseleave="resetCard(this)">
+          <div class="talent-card-header">
+            <div class="avatar-frame">
+              🛸
+              <div class="avatar-glow"></div>
+            </div>
+            <div class="talent-meta">
+              <h3>Анна Лебедева</h3>
+              <span class="spec-badge">Senior Vue 3 / Nuxt Developer</span>
+            </div>
+          </div>
+          <div class="talent-experience">
+            💼 Опыт: 5 лет • ⭐️ Рейтинг: 4.8
+          </div>
+          <div class="talent-bio">
+            Занимаюсь разработкой сложных SPA/SSR веб-приложений. Настраиваю идеальное SEO-продвижение, семантическую верстку, интеграции с Pinia, TailwindCSS и оптимизирую Web Vitals до 100%.
+          </div>
+          <div class="skills-container">
+            <span class="skill-chip">Vue 3</span>
+            <span class="skill-chip">Nuxt 3</span>
+            <span class="skill-chip">SEO Opt.</span>
+            <span class="skill-chip">Pinia</span>
+            <span class="skill-chip">TypeScript</span>
+          </div>
+          
+          <!-- Gated Contact details -->
+          <div class="gated-contact-section">
+            <div class="contact-list">
+              <div class="contact-item">
+                <span style="font-size: 1.1rem;">✉️</span>
+                <span>anna.lebedeva@frontend.io</span>
+              </div>
+              <div class="contact-item">
+                <span style="font-size: 1.1rem;">✈️</span>
+                <span>@lebedeva_nuxt</span>
+              </div>
+            </div>
+            <div class="blur-overlay">
+              <button class="unlock-btn" onclick="addToCart('3', 'Анна Лебедева', 'Senior Vue 3 Developer', '🛸')">
+                <svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2 2 2 0 0 0 2 2m6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2m-6-5c1.66 0 3 1.34 3 3v2H9V6c0-1.66 1.34-3 3-3z"/></svg>
+                Открыть контакт • 500 ₽
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- SEO BLOG SECTION -->
+  <section class="seo-teaser-section" id="articles">
+    <div class="seo-teaser-header">
+      <div>
+        <span class="article-tag">Поисковая оптимизация</span>
+        <h2>Экспертный блог profiTilda</h2>
+        <p>Качественные SEO-статьи генерируют постоянный приток целевых клиентов из Яндекса и Google.</p>
+      </div>
+    </div>
+    <div class="article-grid">
+      <div class="article-card">
+        <span class="article-tag">Разработка</span>
+        <h3>Как выбрать Fastify разработчика для высоконагруженного сервиса</h3>
+        <p>Разбираем ключевые технические вопросы на собеседовании, проверяем знания микросервисной архитектуры и оптимизации PostgreSQL.</p>
+        <span class="article-link">Читать статью →</span>
+      </div>
+      <div class="article-card">
+        <span class="article-tag">Дизайн</span>
+        <h3>Что такое продуктовый UX дизайн и почему он стоит дороже лендинга</h3>
+        <p>Анализируем влияние глубоких исследований пользовательского опыта на прибыль финтех-продуктов и экономику платформ.</p>
+        <span class="article-link">Читать статью →</span>
+      </div>
+      <div class="article-card">
+        <span class="article-tag">SEO</span>
+        <h3>Продвижение IT-агентства статьями в 2026 году</h3>
+        <p>Кейс и практические шаги по выводу в топ поисковиков низкочастотных запросов про найм квалифицированных дизайнеров и программистов.</p>
+        <span class="article-link">Читать статью →</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 profiTilda. Все права защищены. Разработано в учебных целях для демонстрации архитектуры.</p>
+  </footer>
+
+  <!-- SIDE DRAWER (TALENT CART) -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer(false)">
+    <div class="cart-drawer" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <span class="drawer-title">Корзина контактов</span>
+        <button class="close-drawer-btn" onclick="toggleDrawer(false)">×</button>
+      </div>
+
+      <div class="cart-items-list" id="cart-items-list">
+        <!-- Dynamically injected cart rows -->
+        <div class="empty-cart-view" id="empty-cart-view">
+          <div class="empty-cart-icon">🛒</div>
+          <p>Ваша корзина пуста.<br>Добавьте специалистов, чтобы выкупить их контакты.</p>
+        </div>
+      </div>
+
+      <div class="cart-summary" id="cart-summary-section" style="display: none;">
+        <div class="summary-row">
+          <span>Контактов к открытию:</span>
+          <span id="summary-qty">0</span>
+        </div>
+        <div class="summary-row">
+          <span>Цена за единицу:</span>
+          <span>500 ₽</span>
+        </div>
+        <div class="summary-row total">
+          <span>Итого к оплате:</span>
+          <span id="summary-total">0 ₽</span>
+        </div>
+        <button class="checkout-submit-btn" onclick="startMockPayment()">
+          Оформить покупку через ЮKassa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT DIALOG MODAL (SIMULATOR) -->
+  <div class="payment-modal" id="payment-modal">
+    <div class="payment-box">
+      <div class="payment-logo">
+        ЮKassa <span class="payment-provider-badge">СПБ / Карты</span>
+      </div>
+      <div class="payment-loading">
+        <div class="spinner"></div>
+        <h3>Ожидание подтверждения транзакции</h3>
+        <p>Пожалуйста, подтвердите списание в мобильном приложении банка или введите код из SMS.</p>
+      </div>
+      <p style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Сумма платежа: <span id="payment-amount">0 ₽</span></p>
+      <button class="payment-cancel" onclick="cancelPayment()">Отмена платежа</button>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- --- JAVASCRIPT LOGIC --- -->
+  <script>
+    // Global Cart State
+    let cart = [];
+
+    // --- CARD 3D TILT EFFECT ---
+    function tiltCard(e, card) {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const width = rect.width;
+      const height = rect.height;
+      
+      // Calculate rotation angles
+      const rotateX = ((y / height) - 0.5) * -12; // max rotate 12deg
+      const rotateY = ((x / width) - 0.5) * 12;
+      
+      card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    }
+
+    function resetCard(card) {
+      card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+    }
+
+    // --- TOAST SYSTEMS ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type === 'success' ? 'toast-success' : ''}`;
+      toast.innerHTML = `
+        <span style="font-size: 1.1rem;">${type === 'success' ? '✅' : '🔔'}</span>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+      
+      // Trigger CSS Transition
+      setTimeout(() => toast.classList.add('show'), 50);
+      
+      // Auto-remove
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    // --- CATALOG FILTERS ---
+    function filterCatalog(spec, button) {
+      // Toggle Tab Active Classes
+      document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+      button.classList.add('active');
+
+      // Toggle Card Visibility
+      const cards = document.querySelectorAll('.card-wrapper');
+      cards.forEach(wrapper => {
+        if (spec === 'all' || wrapper.getAttribute('data-specialization') === spec) {
+          wrapper.style.display = 'block';
+          // Little entry animation
+          wrapper.style.opacity = '0';
+          setTimeout(() => {
+            wrapper.style.opacity = '1';
+            wrapper.style.transition = 'opacity 0.3s ease';
+          }, 50);
+        } else {
+          wrapper.style.display = 'none';
+        }
+      });
+    }
+
+    // --- DRAWER CONTROLS ---
+    function toggleDrawer(open) {
+      const drawer = document.getElementById('drawer-overlay');
+      if (open) {
+        drawer.classList.add('open');
+      } else {
+        drawer.classList.remove('open');
+      }
+    }
+
+    // --- CART MECHANICS ---
+    function addToCart(id, name, role, avatar) {
+      // Check if already unlocked
+      const card = document.getElementById(`card-${id}`);
+      if (card.classList.contains('unlocked')) {
+        showToast('Этот контакт уже успешно выкуплен и доступен!', 'success');
+        return;
+      }
+
+      // Check if already in cart
+      if (cart.find(item => item.id === id)) {
+        toggleDrawer(true);
+        showToast('Специалист уже добавлен в корзину');
+        return;
+      }
+
+      // Add to cart
+      cart.push({ id, name, role, avatar });
+      updateCartUI();
+      toggleDrawer(true);
+      showToast('Добавлено в корзину: ' + name, 'success');
+    }
+
+    // Unlocked lists (for persistent session preview)
+    const unlockedIds = new Set();
+
+    function removeFromCart(id) {
+      cart = cart.filter(item => item.id !== id);
+      updateCartUI();
+      showToast('Специалист удален из корзины');
+    }
+
+    function updateCartUI() {
+      const list = document.getElementById('cart-items-list');
+      const countBadge = document.getElementById('cart-count');
+      const summarySection = document.getElementById('cart-summary-section');
+      const emptyView = document.getElementById('empty-cart-view');
+
+      // Badge Count
+      countBadge.textContent = cart.length;
+
+      // Handle Empty View
+      if (cart.length === 0) {
+        emptyView.style.display = 'flex';
+        summarySection.style.display = 'none';
+        // Remove old rows
+        const rows = list.querySelectorAll('.cart-item-row');
+        rows.forEach(r => r.remove());
+        return;
+      }
+
+      emptyView.style.display = 'none';
+      summarySection.style.display = 'block';
+
+      // Keep only empty view, clear rest to rebuild
+      const oldRows = list.querySelectorAll('.cart-item-row');
+      oldRows.forEach(r => r.remove());
+
+      // Inject row elements
+      cart.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'cart-item-row';
+        row.innerHTML = `
+          <div class="cart-item-avatar">${item.avatar}</div>
+          <div class="cart-item-details">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-role">${item.role}</div>
+          </div>
+          <button class="remove-cart-item" onclick="removeFromCart('${item.id}')">Удалить</button>
+        `;
+        list.appendChild(row);
+      });
+
+      // Update calculations
+      const totalAmount = cart.length * 500;
+      document.getElementById('summary-qty').textContent = cart.length;
+      document.getElementById('summary-total').textContent = `${totalAmount} ₽`;
+    }
+
+    // --- MOCK PAYMENT FLOW ---
+    let paymentTimer = null;
+
+    function startMockPayment() {
+      if (cart.length === 0) return;
+      
+      const totalAmount = cart.length * 500;
+      document.getElementById('payment-amount').textContent = `${totalAmount} ₽`;
+      
+      // Close Cart Drawer and Open Payment Dialog
+      toggleDrawer(false);
+      document.getElementById('payment-modal').classList.add('open');
+
+      // Simulate YooKassa webhook response in 3.5 seconds
+      paymentTimer = setTimeout(() => {
+        completePayment();
+      }, 3500);
+    }
+
+    function cancelPayment() {
+      clearTimeout(paymentTimer);
+      document.getElementById('payment-modal').classList.remove('open');
+      showToast('Оплата отменена пользователем', 'info');
+      toggleDrawer(true);
+    }
+
+    function completePayment() {
+      document.getElementById('payment-modal').classList.remove('open');
+      
+      // Unlock all cards currently in cart
+      cart.forEach(item => {
+        const card = document.getElementById(`card-${item.id}`);
+        if (card) {
+          card.classList.add('unlocked');
+        }
+      });
+
+      showToast(`Успешно открыто контактов: ${cart.length}!`, 'success');
+      
+      // Clear Cart
+      cart = [];
+      updateCartUI();
+    }
+  </script>
+</body>
+</html>

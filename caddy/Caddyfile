@@ -1,0 +1,21 @@
+{
+    # Global options
+    email {$ACME_EMAIL}
+}
+
+# Domains can be comma separated, e.g., yourdomain.com, www.yourdomain.com
+# Defaults to localhost for offline testing if no environment variable is loaded
+{$DOMAIN:localhost} {
+    # Compress all responses
+    encode gzip
+
+    # Route all API calls directly to the Fastify backend service
+    # Stripping the /api prefix so /api/profiles becomes /profiles in Fastify
+    route /api/* {
+        uri strip_prefix /api
+        reverse_proxy backend:3001
+    }
+
+    # Route all other web traffic to the Nuxt 3 dynamic frontend service
+    reverse_proxy * frontend:3000
+}
