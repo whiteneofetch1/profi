@@ -441,5 +441,19 @@ function getAvailabilityLabel(status: string) {
     padding: 1.25rem;
     margin-top: 3rem;
   }
+  .talent-card {
+    padding: 1.25rem 1rem !important;
+    border-radius: 18px !important;
+  }
+  .talent-card-header {
+    gap: 0.8rem;
+  }
+  .avatar-frame {
+    width: 52px;
+    height: 52px;
+  }
+  .talent-name-link h2 {
+    font-size: 1.15rem;
+  }
 }
 </style>

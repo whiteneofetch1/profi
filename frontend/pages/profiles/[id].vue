@@ -1380,6 +1380,26 @@ h2 {
 }
 
 @media (max-width: 768px) {
+  .profile-container {
+    padding: 1.5rem 1rem 5rem !important;
+  }
+  .designer-card-hero {
+    position: relative;
+    top: 0;
+    padding: 1.5rem 1.2rem;
+    border-radius: 18px;
+  }
+  .spec-name {
+    font-size: 1.4rem;
+    word-break: break-word;
+  }
+  .avatar-holder {
+    width: 84px;
+    height: 84px;
+  }
+  .contacts-gated-box {
+    padding: 1.2rem 1rem;
+  }
   .sticky-mobile-cta-bar {
     display: block;
   }

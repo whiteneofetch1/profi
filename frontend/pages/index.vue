@@ -1291,6 +1291,20 @@ p {
   .specialists-grid {
     grid-template-columns: 1fr;
   }
+  .talent-card {
+    padding: 1.25rem 1rem !important;
+    border-radius: 18px !important;
+  }
+  .talent-card-header {
+    gap: 0.8rem;
+  }
+  .avatar-frame {
+    width: 52px;
+    height: 52px;
+  }
+  .talent-name-link h2 {
+    font-size: 1.15rem;
+  }
   .seo-keywords-section {
     padding: 0 1.25rem;
   }
