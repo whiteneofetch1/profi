@@ -195,7 +195,10 @@ const formPost = ref({
 });
 
 async function loadAdminData() {
-  if (!auth.isAdmin) return;
+  if (!auth.isAdmin) {
+    loading.value = false;
+    return;
+  }
   const config = useRuntimeConfig();
   loading.value = true;
   try {
@@ -234,8 +237,15 @@ async function loadBlogData() {
   }
 }
 
-onMounted(() => {
-  loadAdminData();
+onMounted(async () => {
+  if (!auth.user) {
+    await auth.fetchUser();
+  }
+  if (auth.isAdmin) {
+    await loadAdminData();
+  } else {
+    loading.value = false;
+  }
 });
 
 // Approve / Reject specialist
