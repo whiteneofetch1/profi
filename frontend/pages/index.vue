@@ -520,6 +520,20 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
       </div>
     </section>
 
+    <!-- SEO KEYWORD LINKS BLOCK FOR YANDEX & GOOGLE WORDSTAT -->
+    <section class="seo-keywords-section">
+      <div class="seo-keywords-container">
+        <h2 class="seo-keywords-title">Популярные направления подбора специалистов на fyxi</h2>
+        <div class="seo-tags-grid">
+          <NuxtLink to="/blog/kak-vybrat-luchshego-dizajnera-na-tilda" class="seo-tag-link">📐 Дизайнеры Zero Block</NuxtLink>
+          <NuxtLink to="/blog/poshagovaya-animaciya-v-tilda-zero-block-gid" class="seo-tag-link">✨ Разработчики анимации Tilda</NuxtLink>
+          <NuxtLink to="/blog/skolko-stoit-zakazat-sajt-na-tilda-v-2026-godu" class="seo-tag-link">💰 Заказать сайт на Тильде цена</NuxtLink>
+          <NuxtLink to="/blog/kak-podklyuchit-yukassa-k-tilda-poshagovaya-instrukciya" class="seo-tag-link">🛒 E-commerce &amp; ЮKassa Tilda</NuxtLink>
+          <NuxtLink to="/blog/seo-optimizaciya-sajta-na-tilda-chek-list" class="seo-tag-link">📈 SEO оптимизация сайтов на Tilda</NuxtLink>
+        </div>
+      </div>
+    </section>
+
   </div>
 </template>
 
@@ -1153,5 +1167,52 @@ p {
   color: var(--text-muted);
   line-height: 1.5;
   margin: 0;
+}
+
+/* --- SEO KEYWORDS LINKS --- */
+.seo-keywords-section {
+  max-width: 1200px;
+  margin: 3rem auto 0;
+  padding: 0 2rem;
+}
+
+.seo-keywords-container {
+  background: rgba(18, 18, 26, 0.4);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  text-align: center;
+}
+
+.seo-keywords-title {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 1.2rem;
+  font-weight: 500;
+}
+
+.seo-tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.seo-tag-link {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-glow);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.seo-tag-link:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  transform: translateY(-2px);
 }
 </style>

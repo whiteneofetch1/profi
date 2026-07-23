@@ -48,6 +48,10 @@ export default defineNuxtConfig({
         { name: 'description', content: 'fyxi.ru — маркетплейс проверенных веб-дизайнеров и разработчиков Zero Block. Покупайте прямые контакты специалистов без комиссий.' },
         { name: 'format-detection', content: 'telephone=no' },
         { name: 'yandex-verification', content: 'c9a6a60917a6f97e' },
+        { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' },
+        { name: 'author', content: 'fyxi.ru' },
+        { name: 'geo.region', content: 'RU' },
+        { name: 'geo.placename', content: 'Москва, Россия' },
         
         // OpenGraph SEO Meta Tags
         { property: 'og:site_name', content: 'fyxi' },
