@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
+import { useRoute, useRuntimeConfig } from '#app';
 import { useAuthStore } from '~/stores/auth';
 
 const auth = useAuthStore();
+const route = useRoute();
 const showToast = inject('showToast') as (msg: string, type?: 'success' | 'info') => void;
 
 // Form states
@@ -11,6 +13,7 @@ const authEmail = ref('');
 const authPassword = ref('');
 const authRole = ref<'DEVELOPER' | 'CLIENT'>('DEVELOPER');
 const authError = ref('');
+const registrationMessage = ref('');
 const isAuthSubmitting = ref(false);
 
 // Developer Profile form states
@@ -31,8 +34,29 @@ const contactPhone = ref('');
 
 const isProfileSaving = ref(false);
 
-// On mount: if developer, load current profile details into form
+// On mount: check for verifyToken or load user details
 onMounted(async () => {
+  const config = useRuntimeConfig();
+
+  // Check if verifying email token from URL (e.g. /cabinet?verifyToken=xyz)
+  const verifyToken = route.query.verifyToken as string;
+  if (verifyToken) {
+    try {
+      const data = await $fetch<any>(`${config.public.apiUrl}/auth/verify-email`, {
+        method: 'POST',
+        body: { token: verifyToken },
+      });
+
+      if (data && data.user) {
+        auth.setUser(data.user);
+        if (showToast) showToast('Email успешно подтвержден! Вы авторизованы.', 'success');
+        populateForm();
+      }
+    } catch (err: any) {
+      authError.value = err.data?.error || 'Недействительный или истекший токен верификации.';
+    }
+  }
+
   await auth.fetchUser();
   populateForm();
 });
@@ -63,6 +87,7 @@ function populateForm() {
 // Authentication trigger
 async function handleAuth() {
   authError.value = '';
+  registrationMessage.value = '';
   isAuthSubmitting.value = true;
   const config = useRuntimeConfig();
 
@@ -82,21 +107,39 @@ async function handleAuth() {
       body,
     });
 
-    if (data && data.user) {
-      auth.setUser(data.user);
-      showToast(isLoginMode.value ? 'Успешный вход в кабинет!' : 'Регистрация прошла успешно!', 'success');
-      populateForm();
+    if (isLoginMode.value) {
+      if (data && data.user) {
+        auth.setUser(data.user);
+        if (showToast) showToast('Успешный вход в кабинет!', 'success');
+        populateForm();
+      }
+    } else {
+      // Registration successful -> requires email verification
+      registrationMessage.value = data.message || 'Регистрация прошла успешно! Проверьте вашу электронную почту для подтверждения аккаунта.';
+      if (showToast) showToast('Письмо с подтверждением отправлено на вашу почту!', 'info');
     }
   } catch (err: any) {
-    authError.value = err.data?.error || 'Произошла непредвиденная ошибка';
+    authError.value = err.data?.error || 'Произошла ошибка при авторизации';
   } finally {
     isAuthSubmitting.value = false;
   }
 }
 
+// Logout trigger
+async function handleLogout() {
+  const config = useRuntimeConfig();
+  try {
+    await $fetch(`${config.public.apiUrl}/auth/logout`, { method: 'POST' });
+  } catch (e) {
+    // Ignore error
+  }
+  auth.clearUser();
+  registrationMessage.value = '';
+  if (showToast) showToast('Вы вышли из личного кабинета', 'info');
+}
+
 // Profile Saving trigger
 async function handleSaveProfile() {
-  isProfileSaving.value = '';
   isProfileSaving.value = true;
   const config = useRuntimeConfig();
 
@@ -128,13 +171,13 @@ async function handleSaveProfile() {
     });
 
     if (response && response.success) {
-      showToast('Анкета успешно отправлена на модерацию!', 'success');
+      if (showToast) showToast('Анкета успешно отправлена на модерацию!', 'success');
       // Refresh user details to update state
       await auth.fetchUser();
       populateForm();
     }
   } catch (err: any) {
-    showToast(err.data?.error || 'Не удалось сохранить профиль', 'info');
+    if (showToast) showToast(err.data?.error || 'Не удалось сохранить профиль', 'info');
   } finally {
     isProfileSaving.value = false;
   }
@@ -147,7 +190,17 @@ async function handleSaveProfile() {
       
       <!-- 1. GUEST FORM (NOT LOGGED IN) -->
       <template v-if="!auth.isAuthenticated">
-        <div class="auth-box">
+        <!-- Registration Confirmation Message Banner -->
+        <div v-if="registrationMessage" class="registration-success-box">
+          <div class="success-icon">✉️</div>
+          <h3>Подтверждение Email отправлено!</h3>
+          <p>{{ registrationMessage }}</p>
+          <button class="auth-submit-btn" style="margin-top: 1.5rem;" @click="registrationMessage = ''; isLoginMode = true;">
+            Вернуться к форме входа
+          </button>
+        </div>
+
+        <div v-else class="auth-box">
           <div class="auth-tabs">
             <button :class="['auth-tab', { active: isLoginMode }]" @click="isLoginMode = true">Вход</button>
             <button :class="['auth-tab', { active: !isLoginMode }]" @click="isLoginMode = false">Регистрация</button>
@@ -196,7 +249,10 @@ async function handleSaveProfile() {
       <!-- 2. CLIENT CABINET -->
       <template v-else-if="auth.isClient">
         <div class="client-dashboard">
-          <h2>Добро пожаловать, {{ auth.user?.email }}!</h2>
+          <div class="dashboard-header-bar">
+            <h2>Добро пожаловать, {{ auth.user?.email }}!</h2>
+            <button class="logout-btn" @click="handleLogout">Выйти из кабинета 🚪</button>
+          </div>
           <p class="dashboard-hint">Вы зарегистрированы на платформе как <strong>Заказчик</strong>.</p>
           <div class="dashboard-actions">
             <p>Теперь вы можете переходить в каталог, добавлять профили специалистов в корзину и выкупать их прямые контакты.</p>
@@ -209,8 +265,11 @@ async function handleSaveProfile() {
       <template v-else-if="auth.isDeveloper">
         <div class="profile-editor-box">
           <div class="editor-header">
-            <h2>Анкета IT-специалиста</h2>
-            <p>Заполните форму, чтобы ваши навыки появились в поиске заказчиков.</p>
+            <div>
+              <h2>Анкета IT-специалиста</h2>
+              <p>Заполните форму, чтобы ваши навыки появились в поиске заказчиков.</p>
+            </div>
+            <button class="logout-btn" @click="handleLogout">Выйти 🚪</button>
           </div>
 
           <!-- Approval Banner -->
@@ -225,7 +284,10 @@ async function handleSaveProfile() {
             <span class="status-icon">🚀</span>
             <div>
               <strong>Ваш профиль опубликован в каталоге!</strong>
-              <p>Заказчики могут находить вас по навыкам и покупать ваши контакты. Любые новые правки повлекут повторную модерацию.</p>
+              <p>Заказчики могут находить вас по навыкам и покупать ваши контакты.</p>
+              <NuxtLink :to="`/profiles/${auth.user.devProfile.slug || auth.user.devProfile.id}`" class="view-public-link">
+                🔗 Открыть карточку в каталоге
+              </NuxtLink>
             </div>
           </div>
 
@@ -557,5 +619,60 @@ async function handleSaveProfile() {
 
 .save-profile-btn:disabled {
   opacity: 0.6;
+}
+
+/* --- REGISTRATION SUCCESS BANNER & DASHBOARD HEADER --- */
+.registration-success-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  padding: 3rem 2rem;
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);
+}
+
+.success-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+  text-align: left;
+}
+
+.logout-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fff;
+}
+
+.view-public-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #38bdf8;
+  font-size: 0.85rem;
+  text-decoration: underline;
 }
 </style>
