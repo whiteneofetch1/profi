@@ -635,16 +635,18 @@ function handleAddToCart() {
 
 .verified-seal {
   position: absolute;
-  bottom: -5px;
-  right: -20px;
-  background: rgba(6, 182, 212, 0.15);
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  bottom: -4px;
+  right: -10px;
+  background: #0d0c18;
+  border: 1.5px solid var(--accent-cyan);
   color: var(--accent-cyan);
   font-size: 0.72rem;
-  padding: 0.2rem 0.6rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 99px;
   font-weight: 600;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 12px rgba(6, 182, 212, 0.4);
+  z-index: 10;
+  white-space: nowrap;
 }
 
 .spec-name {
