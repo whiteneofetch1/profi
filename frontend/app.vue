@@ -284,15 +284,18 @@ async function handleCheckout() {
 }
 
 .logo {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 1.5rem;
   font-weight: 700;
+  color: var(--accent-cyan);
   background: var(--gradient-cyber);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-decoration: none;
+  z-index: 102;
 }
 
 .logo-dot {
@@ -324,6 +327,84 @@ async function handleCheckout() {
   border-color: var(--accent-violet);
   box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
   color: var(--accent-cyan);
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-link-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-link-item:hover, .nav-link-item.active {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: var(--accent-cyan);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+.session-user-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.4rem 0.4rem 0.4rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.user-avatar-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--gradient-cyber);
+  border-radius: 50%;
+  font-size: 0.9rem;
+}
+
+.session-email {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.logout-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fff;
 }
 
 @media (max-width: 768px) {
@@ -362,32 +443,16 @@ async function handleCheckout() {
   }
 
   .nav-link-item {
-    display: flex;
-    align-items: center;
     gap: 0.75rem;
     padding: 0.85rem 1.25rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    color: var(--text-primary);
-    text-decoration: none;
     font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-  }
-
-  .nav-link-item:hover, .nav-link-item.active {
-    background: rgba(6, 182, 212, 0.1);
-    border-color: var(--accent-cyan);
-    color: #fff;
-    box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
   }
 
   .session-user-box {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    padding: 1rem;
+    gap: 0.85rem;
+    padding: 1.1rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-glow);
     border-radius: 16px;
@@ -397,42 +462,15 @@ async function handleCheckout() {
   .user-info {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-  }
-
-  .user-avatar-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: var(--gradient-cyber);
-    border-radius: 50%;
-    font-size: 0.9rem;
-  }
-
-  .session-email {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    word-break: break-all;
+    gap: 0.75rem;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .logout-btn {
     width: 100%;
-    background: rgba(239, 68, 68, 0.12);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #fca5a5;
     padding: 0.7rem;
-    border-radius: 12px;
-    font-weight: 600;
     font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .logout-btn:hover {
-    background: rgba(239, 68, 68, 0.25);
-    color: #fff;
   }
 
   .cart-btn {
@@ -567,14 +605,16 @@ async function handleCheckout() {
   display: flex;
   flex-direction: column;
   transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 2.5rem 2rem;
+  padding: 2.5rem 1.75rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 @media (max-width: 600px) {
   .cart-drawer {
     max-width: 100vw;
     right: -100vw;
-    padding: 1.5rem 1.25rem;
+    padding: 1.5rem 1rem;
   }
 }
 
@@ -613,7 +653,8 @@ async function handleCheckout() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  padding-right: 0.4rem;
 }
 
 .cart-item-row {
@@ -640,19 +681,27 @@ async function handleCheckout() {
 
 .cart-item-details {
   flex: 1;
+  min-width: 0;
 }
 
 .cart-item-name {
   font-size: 0.95rem;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cart-item-role {
   font-size: 0.8rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .remove-cart-item {
+  flex-shrink: 0;
   background: transparent;
   border: none;
   color: #ef4444;
@@ -660,6 +709,7 @@ async function handleCheckout() {
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s ease;
+  white-space: nowrap;
 }
 
 .remove-cart-item:hover {

@@ -485,17 +485,17 @@ function navigateToProfile(event: MouseEvent, profile: any) {
                 <div class="contact-item">
                   <span class="emoji-ico">✉️ Email:</span>
                   <a v-if="profile.isUnlocked && profile.contactEmail" :href="`mailto:${profile.contactEmail}`">{{ profile.contactEmail }}</a>
-                  <span v-else class="masked-contact-text" aria-label="Контакт скрыт до оплаты">alex.v***@fyxi.ru</span>
+                  <span v-else class="masked-contact-text" title="Контакт скрыт до оплаты">alex.v***@fyxi.ru</span>
                 </div>
                 <div class="contact-item">
                   <span class="emoji-ico">✈️ Telegram:</span>
                   <a v-if="profile.isUnlocked && profile.contactTelegram" :href="`https://t.me/${profile.contactTelegram?.replace('@', '')}`" target="_blank" rel="noopener">{{ profile.contactTelegram }}</a>
-                  <span v-else class="masked-contact-text" aria-label="Контакт скрыт до оплаты">@alex_***</span>
+                  <span v-else class="masked-contact-text" title="Контакт скрыт до оплаты">@alex_***</span>
                 </div>
                 <div v-if="profile.contactPhone" class="contact-item">
                   <span class="emoji-ico">📞 Телефон:</span>
                   <span v-if="profile.isUnlocked">{{ profile.contactPhone }}</span>
-                  <span v-else class="masked-contact-text" aria-label="Контакт скрыт до оплаты">+7 (903) ***-**-**</span>
+                  <span v-else class="masked-contact-text" title="Контакт скрыт до оплаты">+7 (903) ***-**-**</span>
                 </div>
               </div>
 
@@ -550,11 +550,11 @@ function navigateToProfile(event: MouseEvent, profile: any) {
       <div class="seo-keywords-container">
         <h2 class="seo-keywords-title">Популярные направления подбора специалистов на fyxi</h2>
         <div class="seo-tags-grid">
-          <NuxtLink to="/blog/kak-vybrat-luchshego-dizajnera-na-tilda" class="seo-tag-link">📐 Дизайнеры Zero Block</NuxtLink>
-          <NuxtLink to="/blog/poshagovaya-animaciya-v-tilda-zero-block-gid" class="seo-tag-link">✨ Разработчики анимации Tilda</NuxtLink>
-          <NuxtLink to="/blog/skolko-stoit-zakazat-sajt-na-tilda-v-2026-godu" class="seo-tag-link">💰 Заказать сайт на Тильде цена</NuxtLink>
-          <NuxtLink to="/blog/kak-podklyuchit-yukassa-k-tilda-poshagovaya-instrukciya" class="seo-tag-link">🛒 E-commerce &amp; ЮKassa Tilda</NuxtLink>
-          <NuxtLink to="/blog/seo-optimizaciya-sajta-na-tilda-chek-list" class="seo-tag-link">📈 SEO оптимизация сайтов на Tilda</NuxtLink>
+          <NuxtLink to="/blog/gde-nayti-dizaynera-tilda-chek-list-portfolio" class="seo-tag-link">📐 Дизайнеры Zero Block</NuxtLink>
+          <NuxtLink to="/blog/zero-block-tilda-step-by-step-animation" class="seo-tag-link">✨ Разработчики анимации Tilda</NuxtLink>
+          <NuxtLink to="/blog/zakazat-sayt-na-tilda-cena-stoimost" class="seo-tag-link">💰 Заказать сайт на Тильде цена</NuxtLink>
+          <NuxtLink to="/blog/internet-magazin-na-tilda-yookassa-integraciya" class="seo-tag-link">🛒 E-commerce &amp; ЮKassa Tilda</NuxtLink>
+          <NuxtLink to="/blog/seo-optimizaciya-sayta-na-tilda-yandex-google" class="seo-tag-link">📈 SEO оптимизация сайтов на Tilda</NuxtLink>
         </div>
       </div>
     </section>
@@ -1233,10 +1233,27 @@ p {
   gap: 0.8rem;
 }
 
+.seo-tag-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .seo-tag-link:hover {
+  background: rgba(6, 182, 212, 0.1);
   border-color: var(--accent-cyan);
   color: var(--accent-cyan);
   transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
 }
 
 /* --- SKELETON CARD STYLES --- */
@@ -1310,6 +1327,26 @@ p {
   }
   .seo-keywords-container {
     padding: 1.5rem 1rem;
+  }
+  .faq-section {
+    margin: 2.5rem auto 0;
+    padding: 0 1rem;
+  }
+  .faq-container {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+  .faq-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .faq-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .faq-card {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
   }
 }
 </style>
