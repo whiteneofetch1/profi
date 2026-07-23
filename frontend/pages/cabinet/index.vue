@@ -642,24 +642,30 @@ async function handleSaveProfile() {
 
           <!-- TAB PORTFOLIO -->
           <div v-if="activeTab === 'portfolio'" class="portfolio-tab">
-            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-              <h2>Мои Кейсы</h2>
-              <button class="btn btn-primary" @click="openCaseModal()">+ Добавить кейс</button>
+            <div class="section-header portfolio-header">
+              <h2 class="section-subtitle">🎨 Мои Кейсы</h2>
+              <button class="btn btn-primary btn-add-case" @click="openCaseModal()">✨ + Добавить кейс</button>
             </div>
             
-            <div v-if="isCasesLoading" class="loading-state">Загрузка...</div>
-            <div v-else-if="myCases.length === 0" class="empty-state">У вас пока нет добавленных кейсов.</div>
-            <div v-else class="cases-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
-              <div v-for="c in myCases" :key="c.id" class="case-card" style="background: var(--surface-light, #1a1b23); border: 1px solid var(--border-color, #2d2e3d); border-radius: 8px; overflow: hidden;">
-                <img v-if="c.coverUrl" :src="c.coverUrl" alt="Cover" style="width: 100%; height: 200px; object-fit: cover;" />
-                <div v-else style="width: 100%; height: 200px; background: #2a2a35; display: flex; align-items: center; justify-content: center; color: #666;">Нет обложки</div>
-                <div style="padding: 1.5rem;">
-                  <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.25rem;">{{ c.title }}</h3>
-                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                    <span v-for="tech in c.techStack" :key="tech" style="background: rgba(99, 102, 241, 0.1); color: #818cf8; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">{{ tech }}</span>
+            <div v-if="isCasesLoading" class="loading-state">Загрузка кейсов...</div>
+            <div v-else-if="myCases.length === 0" class="empty-state">
+              <div class="empty-ico">📁</div>
+              <p>У вас пока нет добавленных кейсов в портфолио.</p>
+              <button class="btn btn-primary" @click="openCaseModal()" style="margin-top: 1rem;">✨ Добавить первый кейс</button>
+            </div>
+            <div v-else class="cases-grid">
+              <div v-for="c in myCases" :key="c.id" class="case-card">
+                <div class="case-cover-box">
+                  <img v-if="c.coverUrl" :src="c.coverUrl" alt="Cover" class="case-cover-img" />
+                  <div v-else class="case-no-cover">🖼 Нет обложки</div>
+                </div>
+                <div class="case-card-body">
+                  <h3 class="case-card-title">{{ c.title }}</h3>
+                  <div class="case-tech-tags">
+                    <span v-for="tech in c.techStack" :key="tech" class="tech-tag">{{ tech }}</span>
                   </div>
-                  <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button class="btn btn-secondary btn-sm" @click="openCaseModal(c)" style="flex: 1;">✏️ Редактировать</button>
+                  <div class="case-card-actions">
+                    <button class="btn btn-secondary btn-sm" style="flex: 1;" @click="openCaseModal(c)">✏️ Редактировать</button>
                     <button class="btn btn-danger btn-sm" @click="deleteCase(c.id)">🗑</button>
                   </div>
                 </div>
@@ -1516,5 +1522,172 @@ async function handleSaveProfile() {
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+/* --- BUTTON STYLES & PORTFOLIO --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.btn-primary {
+  padding: 0.65rem 1.4rem;
+  background: linear-gradient(135deg, var(--accent-violet) 0%, var(--accent-cyan) 100%);
+  color: #ffffff;
+  border: none;
+  font-size: 0.92rem;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+  opacity: 0.95;
+}
+
+.btn-secondary {
+  padding: 0.55rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-glow);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-cyan);
+  color: #ffffff;
+}
+
+.btn-danger {
+  padding: 0.55rem 0.85rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  font-size: 0.88rem;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn-sm {
+  font-size: 0.82rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+}
+
+.portfolio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.case-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.case-card:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 8px 30px rgba(6, 182, 212, 0.15);
+  transform: translateY(-3px);
+}
+
+.case-cover-box {
+  width: 100%;
+  height: 180px;
+  background: rgba(255, 255, 255, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+.case-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.case-card:hover .case-cover-img {
+  transform: scale(1.04);
+}
+
+.case-no-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.case-card-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.case-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.case-tech-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.tech-tag {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  color: var(--accent-cyan);
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.case-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-glow);
+  border-radius: 20px;
+  color: var(--text-muted);
+}
+
+.empty-ico {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
 }
 </style>
