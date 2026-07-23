@@ -18,7 +18,7 @@ const isConfigSaving = ref(false);
 const activeTab = ref<'profiles' | 'blog' | 'errors' | 'reviews'>('profiles');
 
 // Admin Login state
-const adminEmail = ref('admin@fyxi.ru');
+const adminEmail = ref('');
 const adminPassword = ref('');
 const adminLoginError = ref('');
 const isAdminLoggingIn = ref(false);
@@ -584,7 +584,7 @@ function formatDate(dateStr: string) {
         <form @submit.prevent="handleAdminLogin" class="admin-login-form">
           <div class="form-group">
             <label>Email администратора</label>
-            <input v-model="adminEmail" type="email" class="form-input" required placeholder="admin@fyxi.ru" />
+            <input v-model="adminEmail" type="email" class="form-input" required placeholder="admin@example.com" />
           </div>
           <div class="form-group">
             <label>Пароль</label>
@@ -598,10 +598,6 @@ function formatDate(dateStr: string) {
           <button :disabled="isAdminLoggingIn" type="submit" class="save-config-btn" style="width: 100%;">
             {{ isAdminLoggingIn ? 'Авторизация...' : 'Войти в панель администратора 🔑' }}
           </button>
-
-          <div class="credentials-hint">
-            💡 <span>Логин: <code>admin@fyxi.ru</code> | Пароль: <code>admin123456</code></span>
-          </div>
         </form>
       </div>
 
