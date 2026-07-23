@@ -80,7 +80,7 @@ async function handleCheckout() {
         <NuxtLink to="/" class="logo">fyxi<span class="logo-dot"></span></NuxtLink>
         <nav>
           <NuxtLink to="/" active-class="active">Каталог</NuxtLink>
-          <NuxtLink to="/blog" active-class="active">Статьи (SEO)</NuxtLink>
+          <NuxtLink to="/blog" active-class="active">Статьи</NuxtLink>
           
           <!-- Admin Panel Button -->
           <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-btn admin-link" active-class="active">Админка</NuxtLink>
