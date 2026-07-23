@@ -144,6 +144,44 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     }
   );
 
+  // --- REVIEWS MODERATION ---
+  fastify.get('/reviews', async (request, reply) => {
+    const reviews = await fastify.prisma.review.findMany({
+      include: {
+        devProfile: {
+          select: { firstName: true, lastName: true, slug: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    reply.send(reviews);
+  });
+
+  fastify.patch('/reviews/:id/visibility', {
+    schema: {
+      params: Type.Object({ id: Type.String({ format: 'uuid' }) }),
+      body: Type.Object({ isHidden: Type.Boolean() })
+    }
+  }, async (request: FastifyRequest<{ Params: { id: string }, Body: { isHidden: boolean } }>, reply) => {
+    const { id } = request.params;
+    const { isHidden } = request.body;
+    const review = await fastify.prisma.review.update({
+      where: { id },
+      data: { isHidden }
+    });
+    reply.send({ success: true, review });
+  });
+
+  fastify.delete('/reviews/:id', {
+    schema: {
+      params: Type.Object({ id: Type.String({ format: 'uuid' }) })
+    }
+  }, async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const { id } = request.params;
+    await fastify.prisma.review.delete({ where: { id } });
+    reply.send({ success: true, message: 'Отзыв удален' });
+  });
+
   // 4. GET AND UPDATE PLATFORM PRICING CONFIGURATION
   fastify.get('/config', async (request, reply) => {
     let config = await fastify.prisma.platformConfig.findFirst();

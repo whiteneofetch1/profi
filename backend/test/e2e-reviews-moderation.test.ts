@@ -5,6 +5,7 @@ import helmet from '@fastify/helmet';
 
 import authPlugin from '../src/plugins/auth';
 import profileRoutes from '../src/routes/profiles';
+import adminRoutes from '../src/routes/admin';
 
 describe('E2E Reviews & Specialist Rating Lifecycle', () => {
   let app: FastifyInstance;
@@ -48,6 +49,17 @@ describe('E2E Reviews & Specialist Rating Lifecycle', () => {
         const sum = list.reduce((acc, curr) => acc + curr.rating, 0);
         return { _avg: { rating: sum / list.length } };
       },
+      update: async (args: any) => {
+        const idx = reviewsTable.findIndex(r => r.id === args.where.id);
+        if (idx === -1) throw new Error('Not found');
+        reviewsTable[idx] = { ...reviewsTable[idx], ...args.data };
+        return reviewsTable[idx];
+      },
+      delete: async (args: any) => {
+        const idx = reviewsTable.findIndex(r => r.id === args.where.id);
+        if (idx !== -1) reviewsTable.splice(idx, 1);
+        return { count: 1 };
+      },
     },
     projectBrief: { count: async () => 0 },
   };
@@ -71,6 +83,7 @@ describe('E2E Reviews & Specialist Rating Lifecycle', () => {
     app.decorate('prisma', mockPrisma as any);
     await app.register(authPlugin);
     await app.register(profileRoutes, { prefix: '/profiles' });
+    await app.register(adminRoutes, { prefix: '/admin' });
   });
 
   it('should allow an authenticated client to post a review for unlocked specialist', async () => {
@@ -145,5 +158,40 @@ describe('E2E Reviews & Specialist Rating Lifecycle', () => {
     const body = JSON.parse(res.body);
     expect(body.reviews.length).toBe(1);
     expect(body.count).toBe(1);
+  });
+
+  it('should allow admin to hide and delete a review', async () => {
+    reviewsTable.push({
+      id: '550e8400-e29b-41d4-a716-446655440002',
+      devProfileId: '550e8400-e29b-41d4-a716-446655440001',
+      authorName: 'Spammer',
+      rating: 1,
+      comment: 'Bad link http://...',
+      createdAt: new Date(),
+      isHidden: false
+    });
+
+    const adminToken = app.jwt.sign({ id: 'admin-1', role: 'ADMIN' });
+
+    // Hide review
+    let res = await app.inject({
+      method: 'PATCH',
+      url: '/admin/reviews/550e8400-e29b-41d4-a716-446655440002/visibility',
+      headers: { Cookie: `token=${adminToken}` },
+      payload: { isHidden: true }
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(reviewsTable.find(r => r.id === '550e8400-e29b-41d4-a716-446655440002').isHidden).toBe(true);
+
+    // Delete review
+    res = await app.inject({
+      method: 'DELETE',
+      url: '/admin/reviews/550e8400-e29b-41d4-a716-446655440002',
+      headers: { Cookie: `token=${adminToken}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(reviewsTable.find(r => r.id === '550e8400-e29b-41d4-a716-446655440002')).toBeUndefined();
   });
 });

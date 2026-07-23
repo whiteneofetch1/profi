@@ -2,6 +2,7 @@
 import { ref, onMounted, inject } from 'vue';
 import { useRoute, useRuntimeConfig } from '#app';
 import { useAuthStore } from '~/stores/auth';
+import UiImageUploader from '~/components/ui/ImageUploader.vue';
 
 const auth = useAuthStore();
 const route = useRoute();
@@ -17,7 +18,7 @@ const registrationMessage = ref('');
 const isAuthSubmitting = ref(false);
 
 // Tabs & Dashboard stats
-const activeTab = ref<'profile' | 'briefs' | 'reviews' | 'security'>('profile');
+const activeTab = ref<'profile' | 'portfolio' | 'briefs' | 'reviews' | 'security'>('profile');
 const briefs = ref<any[]>([]);
 const reviews = ref<any[]>([]);
 const stats = ref<{ unlocksCount: number; briefsCount: number; reviewsCount: number; averageRating: number }>({
@@ -92,8 +93,97 @@ async function loadDeveloperDashboardData() {
     if (statsRes) stats.value = statsRes;
     if (briefsRes?.briefs) briefs.value = briefsRes.briefs;
     if (reviewsRes?.reviews) reviews.value = reviewsRes.reviews;
+    await loadCasesData();
   } catch (e) {
     // Ignore error
+  }
+}
+
+// Portfolio Cases State
+const myCases = ref<any[]>([]);
+const isCasesLoading = ref(false);
+
+const isCaseModalOpen = ref(false);
+const editingCaseId = ref<string | null>(null);
+const caseForm = ref({
+  title: '',
+  description: '',
+  coverUrl: '',
+  techStack: '',
+  link: '',
+  order: 0
+});
+
+async function loadCasesData() {
+  const config = useRuntimeConfig();
+  try {
+    isCasesLoading.value = true;
+    myCases.value = await $fetch<any[]>(`${config.public.apiUrl}/profiles/my-cases`);
+  } catch (err) {
+    if (showToast) showToast('Не удалось загрузить портфолио', 'info');
+  } finally {
+    isCasesLoading.value = false;
+  }
+}
+
+function openCaseModal(c?: any) {
+  if (c) {
+    editingCaseId.value = c.id;
+    caseForm.value = {
+      title: c.title,
+      description: c.description,
+      coverUrl: c.coverUrl || '',
+      techStack: c.techStack && Array.isArray(c.techStack) ? c.techStack.join(', ') : '',
+      link: c.link || '',
+      order: c.order || 0
+    };
+  } else {
+    editingCaseId.value = null;
+    caseForm.value = { title: '', description: '', coverUrl: '', techStack: '', link: '', order: 0 };
+  }
+  isCaseModalOpen.value = true;
+}
+
+function closeCaseModal() {
+  isCaseModalOpen.value = false;
+  editingCaseId.value = null;
+}
+
+async function saveCase() {
+  const config = useRuntimeConfig();
+  const payload = {
+    ...caseForm.value,
+    techStack: caseForm.value.techStack.split(',').map((s: string) => s.trim()).filter(Boolean)
+  };
+  
+  try {
+    if (editingCaseId.value) {
+      await $fetch(`${config.public.apiUrl}/profiles/my-cases/${editingCaseId.value}`, {
+        method: 'PUT', body: payload
+      });
+      if (showToast) showToast('Кейс обновлен', 'success');
+    } else {
+      await $fetch(`${config.public.apiUrl}/profiles/my-cases`, {
+        method: 'POST', body: payload
+      });
+      if (showToast) showToast('Кейс добавлен', 'success');
+    }
+    closeCaseModal();
+    await loadCasesData();
+  } catch (err) {
+    if (showToast) showToast('Ошибка при сохранении кейса', 'info');
+  }
+}
+
+async function deleteCase(id: string) {
+  if (!confirm('Удалить этот кейс?')) return;
+  const config = useRuntimeConfig();
+  try {
+    await $fetch(`${config.public.apiUrl}/profiles/my-cases/${id}`, { method: 'DELETE' });
+    if (showToast) showToast('Кейс удален', 'success');
+    await loadCasesData();
+  } catch (err) {
+    if (showToast) showToast('Ошибка при удалении', 'info');
   }
 }
 
@@ -376,6 +466,9 @@ async function handleSaveProfile() {
             <button :class="['tab-btn', { active: activeTab === 'profile' }]" @click="activeTab = 'profile'">
               👤 Моя Анкета
             </button>
+            <button :class="['tab-btn', { active: activeTab === 'portfolio' }]" @click="activeTab = 'portfolio'">
+              💼 Портфолио
+            </button>
             <button :class="['tab-btn', { active: activeTab === 'briefs' }]" @click="activeTab = 'briefs'">
               📋 Входящие Брифы <span v-if="briefs.length" class="tab-badge">{{ briefs.length }}</span>
             </button>
@@ -385,6 +478,11 @@ async function handleSaveProfile() {
             <button :class="['tab-btn', { active: activeTab === 'security' }]" @click="activeTab = 'security'">
               🔒 Безопасность
             </button>
+            
+            <div style="flex: 1"></div>
+            <NuxtLink v-if="auth.user?.devProfile" :to="`/profiles/${auth.user.devProfile.slug || auth.user.devProfile.id}`" target="_blank" class="tab-btn view-preview-btn" style="background: rgba(99, 102, 241, 0.1); color: #818cf8; border-color: rgba(99, 102, 241, 0.2);">
+              👁 Предпросмотр профиля
+            </NuxtLink>
           </div>
 
           <!-- Email Verification Banner -->
@@ -420,18 +518,8 @@ async function handleSaveProfile() {
 
           <form @submit.prevent="handleSaveProfile">
             <!-- AVATAR & BASIC DETAILS -->
-            <div class="avatar-form-section">
-              <div class="avatar-preview">
-                <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar preview" class="avatar-img" @error="avatarUrl = ''" />
-                <div v-else class="avatar-placeholder">
-                  {{ (firstName[0] || '') + (lastName[0] || '') || '🖼️' }}
-                </div>
-              </div>
-              <div class="form-group" style="flex: 1;">
-                <label>Ссылка на Ваше фото / Аватар (URL)</label>
-                <input v-model="avatarUrl" type="url" class="form-input" placeholder="https://example.com/my-photo.jpg" />
-                <span class="form-hint">Укажите прямую ссылку на фото (JPG, PNG или Unsplash/GitHub)</span>
-              </div>
+            <div class="avatar-form-section" style="display: block; margin-bottom: 2rem;">
+              <UiImageUploader v-model="avatarUrl" label="Ваше фото / Аватар" placeholder="Загрузить фото профиля" />
             </div>
 
             <div class="form-row">
@@ -531,6 +619,33 @@ async function handleSaveProfile() {
           </form>
           </div>
 
+          <!-- TAB PORTFOLIO -->
+          <div v-if="activeTab === 'portfolio'" class="portfolio-tab">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+              <h2>Мои Кейсы</h2>
+              <button class="btn btn-primary" @click="openCaseModal()">+ Добавить кейс</button>
+            </div>
+            
+            <div v-if="isCasesLoading" class="loading-state">Загрузка...</div>
+            <div v-else-if="myCases.length === 0" class="empty-state">У вас пока нет добавленных кейсов.</div>
+            <div v-else class="cases-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+              <div v-for="c in myCases" :key="c.id" class="case-card" style="background: var(--surface-light, #1a1b23); border: 1px solid var(--border-color, #2d2e3d); border-radius: 8px; overflow: hidden;">
+                <img v-if="c.coverUrl" :src="c.coverUrl" alt="Cover" style="width: 100%; height: 200px; object-fit: cover;" />
+                <div v-else style="width: 100%; height: 200px; background: #2a2a35; display: flex; align-items: center; justify-content: center; color: #666;">Нет обложки</div>
+                <div style="padding: 1.5rem;">
+                  <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.25rem;">{{ c.title }}</h3>
+                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <span v-for="tech in c.techStack" :key="tech" style="background: rgba(99, 102, 241, 0.1); color: #818cf8; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">{{ tech }}</span>
+                  </div>
+                  <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary btn-sm" @click="openCaseModal(c)" style="flex: 1;">✏️ Редактировать</button>
+                    <button class="btn btn-danger btn-sm" @click="deleteCase(c.id)">🗑</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- TAB 2: INCOMING BRIEFS -->
           <div v-else-if="activeTab === 'briefs'" class="tab-content-box">
             <h3 class="section-subtitle">📋 Входящие Брифы на проекты</h3>
@@ -616,6 +731,42 @@ async function handleSaveProfile() {
         </div>
       </template>
 
+    </div>
+    <!-- CASE MODAL -->
+    <div v-if="isCaseModalOpen" class="modal-overlay" @click.self="closeCaseModal">
+      <div class="modal-content" style="max-width: 600px; width: 100%;">
+        <button class="modal-close" @click="closeCaseModal">×</button>
+        <h2>{{ editingCaseId ? 'Редактировать кейс' : 'Добавить кейс' }}</h2>
+        <form @submit.prevent="saveCase" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
+          <div class="form-group">
+            <label>Название проекта *</label>
+            <input v-model="caseForm.title" type="text" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label>Описание задачи и результата *</label>
+            <textarea v-model="caseForm.description" class="form-input" rows="4" required></textarea>
+          </div>
+          <div class="form-group">
+            <UiImageUploader v-model="caseForm.coverUrl" label="Обложка проекта (Опционально)" placeholder="Загрузить обложку" />
+          </div>
+          <div class="form-group">
+            <label>Стек технологий (через запятую)</label>
+            <input v-model="caseForm.techStack" type="text" class="form-input" placeholder="Vue, Nuxt, Tailwind" />
+          </div>
+          <div class="form-group">
+            <label>Ссылка на готовый проект (Опционально)</label>
+            <input v-model="caseForm.link" type="url" class="form-input" placeholder="https://..." />
+          </div>
+          <div class="form-group">
+            <label>Порядок отображения (чем меньше, тем раньше)</label>
+            <input v-model="caseForm.order" type="number" class="form-input" />
+          </div>
+          <div class="form-actions" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 1rem;">
+            <button type="button" class="btn btn-secondary" @click="closeCaseModal">Отмена</button>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>

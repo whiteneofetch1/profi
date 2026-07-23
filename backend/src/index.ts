@@ -2,6 +2,9 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import dotenv from 'dotenv';
+import path from 'path';
+import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
 
 import rateLimit from '@fastify/rate-limit';
 import bcrypt from 'bcryptjs';
@@ -16,6 +19,7 @@ import profileRoutes from './routes/profiles';
 import checkoutRoutes from './routes/checkout';
 import adminRoutes from './routes/admin';
 import blogRoutes from './routes/blog';
+import uploadRoutes from './routes/upload';
 
 import { sendTelegramErrorAlert } from './services/notifications';
 
@@ -33,6 +37,15 @@ async function bootstrap() {
     // 1. Core Security Plugins & Rate Limiting
     await fastify.register(helmet, {
       contentSecurityPolicy: false, // Turn off CSP for iframe & dev compatibility
+    });
+
+    await fastify.register(multipart, {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
+    });
+
+    await fastify.register(fastifyStatic, {
+      root: path.join(__dirname, '..', 'uploads'),
+      prefix: '/uploads/',
     });
     
     await fastify.register(cors, {
@@ -68,6 +81,7 @@ async function bootstrap() {
       await fastify.register(checkoutRoutes, { prefix: `${basePrefix}/checkout` });
       await fastify.register(adminRoutes, { prefix: `${basePrefix}/admin` });
       await fastify.register(blogRoutes, { prefix: `${basePrefix}/blog` });
+      await fastify.register(uploadRoutes, { prefix: `${basePrefix}/upload` });
     };
 
     await registerRoutes('');

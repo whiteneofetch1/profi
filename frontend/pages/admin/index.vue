@@ -15,7 +15,7 @@ const bundlePrice = ref(2000);
 const isConfigSaving = ref(false);
 
 // Tabs Switcher
-const activeTab = ref<'profiles' | 'blog' | 'errors'>('profiles');
+const activeTab = ref<'profiles' | 'blog' | 'errors' | 'reviews'>('profiles');
 
 // Admin Login state
 const adminEmail = ref('admin@fyxi.ru');
@@ -30,6 +30,53 @@ const errorSearchQuery = ref('');
 const errorLevelFilter = ref('all');
 const errorResolvedFilter = ref('unresolved');
 const selectedErrorForStack = ref<any | null>(null);
+
+// Reviews State
+const allReviews = ref<any[]>([]);
+const isReviewsLoading = ref(false);
+
+async function loadReviewsData() {
+  const config = useRuntimeConfig();
+  isReviewsLoading.value = true;
+  try {
+    allReviews.value = await $fetch<any[]>(`${config.public.apiUrl}/admin/reviews`);
+  } catch (err) {
+    const showToast = inject('showToast') as any;
+    if (showToast) showToast('Не удалось загрузить список отзывов', 'info');
+  } finally {
+    isReviewsLoading.value = false;
+  }
+}
+
+async function toggleReviewVisibility(reviewId: string, currentIsHidden: boolean) {
+  const config = useRuntimeConfig();
+  try {
+    await $fetch(`${config.public.apiUrl}/admin/reviews/${reviewId}/visibility`, {
+      method: 'PATCH',
+      body: { isHidden: !currentIsHidden }
+    });
+    const showToast = inject('showToast') as any;
+    if (showToast) showToast(!currentIsHidden ? 'Отзыв скрыт' : 'Отзыв восстановлен', 'success');
+    await loadReviewsData();
+  } catch (err) {
+    const showToast = inject('showToast') as any;
+    if (showToast) showToast('Ошибка при изменении видимости отзыва', 'info');
+  }
+}
+
+async function deleteReviewAdmin(reviewId: string) {
+  if (!confirm('Вы уверены, что хотите безвозвратно удалить этот отзыв?')) return;
+  const config = useRuntimeConfig();
+  try {
+    await $fetch(`${config.public.apiUrl}/admin/reviews/${reviewId}`, { method: 'DELETE' });
+    const showToast = inject('showToast') as any;
+    if (showToast) showToast('Отзыв успешно удален', 'success');
+    await loadReviewsData();
+  } catch (err) {
+    const showToast = inject('showToast') as any;
+    if (showToast) showToast('Ошибка при удалении отзыва', 'info');
+  }
+}
 
 async function handleAdminLogin() {
   adminLoginError.value = '';
@@ -248,7 +295,10 @@ async function loadAdminData() {
     }
 
     // 3. Fetch blog posts
-    await loadBlogData();
+    await loadBlogPosts();
+    
+    // 4. Fetch reviews
+    await loadReviewsData();
 
     // 4. Fetch error logs
     await loadErrorLogs();
@@ -571,6 +621,12 @@ function formatDate(dateStr: string) {
             📋 Анкеты специалистов & Тарифы
           </button>
           <button 
+            :class="['tab-btn', { active: activeTab === 'reviews' }]" 
+            @click="activeTab = 'reviews'"
+          >
+            ⭐️ Модерация отзывов
+          </button>
+          <button 
             :class="['tab-btn', { active: activeTab === 'blog' }]" 
             @click="activeTab = 'blog'"
           >
@@ -677,6 +733,47 @@ function formatDate(dateStr: string) {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- TAB REVIEWS -->
+        <div v-if="activeTab === 'reviews'" class="tab-content">
+          <section class="admin-section">
+            <div class="section-header">
+              <h2>⭐️ Модерация отзывов</h2>
+            </div>
+            
+            <div v-if="isReviewsLoading" class="loading-state">
+              Загрузка отзывов...
+            </div>
+            <div v-else-if="allReviews.length === 0" class="empty-state">
+              Нет отзывов
+            </div>
+            <div v-else class="reviews-list" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div v-for="review in allReviews" :key="review.id" class="review-card" :class="{ 'is-hidden': review.isHidden }" style="background: var(--surface-light); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div class="review-header" style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                  <div class="review-author" style="display: flex; gap: 1rem; align-items: center;">
+                    <strong style="color: var(--text-primary); font-size: 1.1rem;">{{ review.authorName }}</strong>
+                    <span class="review-rating" style="background: rgba(250, 204, 21, 0.1); color: var(--warning-color); padding: 0.25rem 0.5rem; border-radius: 4px;">{{ review.rating }} ⭐️</span>
+                    <span class="review-date" style="color: var(--text-muted); font-size: 0.85rem;">{{ new Date(review.createdAt).toLocaleDateString('ru-RU') }}</span>
+                  </div>
+                  <div class="review-target" v-if="review.devProfile">
+                    <NuxtLink :to="`/profiles/${review.devProfile.slug || review.devProfileId}`" target="_blank" style="color: var(--primary-color);">Профиль: {{ review.devProfile.firstName }} {{ review.devProfile.lastName }}</NuxtLink>
+                  </div>
+                </div>
+                <div class="review-body" style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+                  <p>{{ review.comment }}</p>
+                </div>
+                <div class="review-actions" style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                  <button class="action-btn toggle-visibility-btn" @click="toggleReviewVisibility(review.id, review.isHidden)" :style="{ background: review.isHidden ? 'rgba(52, 211, 153, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: review.isHidden ? 'var(--success-color)' : 'var(--warning-color)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-sm)' }">
+                    {{ review.isHidden ? '👁 Восстановить' : '🚫 Скрыть' }}
+                  </button>
+                  <button class="action-btn delete-btn" @click="deleteReviewAdmin(review.id)" style="background: rgba(239, 68, 68, 0.1); color: var(--danger-color); padding: '0.5rem 1rem'; borderRadius: 'var(--radius-sm)'">
+                    🗑 Безвозвратно удалить
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
         </div>

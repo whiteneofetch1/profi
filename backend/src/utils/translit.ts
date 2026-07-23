@@ -29,14 +29,16 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9\s-]/g, '') // remove special characters
     .trim()
     .replace(/[\s_]+/g, '-')       // replace spaces/underscores with hyphens
-    .replace(/-+/g, '-');          // collapse consecutive hyphens
+    .replace(/-+/g, '-')           // collapse consecutive hyphens
+    .replace(/^-+|-+$/g, '');      // trim hyphens from edges
 }
 
-export function generateProfileSlug(firstName: string, lastName: string, id: string): string {
-  const namePart = slugify(`${firstName} ${lastName}`);
+export function generateProfileSlug(firstName?: string, lastName?: string, id?: string): string {
+  const parts = [firstName, lastName].filter(Boolean).join(' ');
+  const namePart = slugify(parts);
   const shortId = id ? id.slice(0, 8) : '';
   if (namePart && shortId) {
     return `${namePart}-${shortId}`;
   }
-  return namePart || shortId || id;
+  return namePart || shortId || id || '';
 }

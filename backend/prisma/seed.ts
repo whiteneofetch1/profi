@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { slugify, generateProfileSlug } from './src/utils/translit';
+import { slugify, generateProfileSlug } from '../src/utils/translit';
 
 const prisma = new PrismaClient();
 

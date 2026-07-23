@@ -26,6 +26,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
               lastActive: true,
             },
           },
+          cases: { orderBy: { order: 'asc' } }
         },
       });
     } else {
@@ -37,6 +38,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
               lastActive: true,
             },
           },
+          cases: { orderBy: { order: 'asc' } }
         },
       });
     }
@@ -586,4 +588,64 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       });
     }
   );
+  // --- PORTFOLIO CASES ---
+  fastify.get('/my-cases', { preValidation: [fastify.authenticate] }, async (request, reply) => {
+    const user = (request as any).user;
+    if (user.role !== 'DEVELOPER' || !user.devProfileId) {
+      return reply.status(403).send({ error: 'Только специалисты имеют портфолио' });
+    }
+    const cases = await fastify.prisma.portfolioCase.findMany({
+      where: { devProfileId: user.devProfileId },
+      orderBy: { order: 'asc' }
+    });
+    reply.send(cases);
+  });
+
+  fastify.post('/my-cases', { preValidation: [fastify.authenticate] }, async (request: FastifyRequest<{ Body: any }>, reply) => {
+    const user = (request as any).user;
+    if (user.role !== 'DEVELOPER' || !user.devProfileId) {
+      return reply.status(403).send({ error: 'Доступ запрещен' });
+    }
+    const { title, description, coverUrl, techStack, link, order } = request.body as any;
+    const newCase = await fastify.prisma.portfolioCase.create({
+      data: {
+        devProfileId: user.devProfileId,
+        title,
+        description,
+        coverUrl,
+        techStack: techStack || [],
+        link,
+        order: order || 0
+      }
+    });
+    reply.send(newCase);
+  });
+
+  fastify.put('/my-cases/:id', { preValidation: [fastify.authenticate] }, async (request: FastifyRequest<{ Params: { id: string }, Body: any }>, reply) => {
+    const user = (request as any).user;
+    const { id } = request.params;
+    const { title, description, coverUrl, techStack, link, order } = request.body as any;
+    // Check ownership
+    const existing = await fastify.prisma.portfolioCase.findUnique({ where: { id } });
+    if (!existing || existing.devProfileId !== user.devProfileId) {
+      return reply.status(404).send({ error: 'Кейс не найден' });
+    }
+    const updated = await fastify.prisma.portfolioCase.update({
+      where: { id },
+      data: { title, description, coverUrl, techStack, link, order }
+    });
+    reply.send(updated);
+  });
+
+  fastify.delete('/my-cases/:id', { preValidation: [fastify.authenticate] }, async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const user = (request as any).user;
+    const { id } = request.params;
+    const existing = await fastify.prisma.portfolioCase.findUnique({ where: { id } });
+    if (!existing || existing.devProfileId !== user.devProfileId) {
+      return reply.status(404).send({ error: 'Кейс не найден' });
+    }
+    await fastify.prisma.portfolioCase.delete({ where: { id } });
+    reply.send({ success: true });
+  });
+
 }

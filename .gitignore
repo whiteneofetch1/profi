@@ -22,6 +22,14 @@ dist/
 *.log
 logs/
 
+# Test & Upload artifacts
+coverage/
+*/coverage/
+uploads/
+backend/uploads/
+playwright-report/
+test-results/
+
 # System / OS
 .DS_Store
 Thumbs.db
