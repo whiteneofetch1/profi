@@ -219,7 +219,7 @@ function getAvailabilityLabel(status: string) {
 
         <div class="filter-selects">
           <select v-model="sortBy" class="filter-select" aria-label="Сортировка">
-            <option value="verified">По рейтингу (Verified)</option>
+            <option value="verified">По рейтингу (Проверенные)</option>
             <option value="price_asc">Сначала недорогие</option>
             <option value="price_desc">Сначала дорогие</option>
             <option value="experience_desc">По опыту (лет)</option>
@@ -268,7 +268,7 @@ function getAvailabilityLabel(status: string) {
                   <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="talent-name-link">
                     <h2>{{ cleanName(profile.firstName) }} {{ cleanName(profile.lastName) }}</h2>
                   </NuxtLink>
-                  <span v-if="profile.isVerified" class="verified-check-badge">✓ Verified</span>
+                  <span v-if="profile.isVerified" class="verified-check-badge">✓ Проверен</span>
                 </div>
                 <span class="spec-badge">{{ cleanTitle(profile.title) }}</span>
               </div>
@@ -428,5 +428,18 @@ function getAvailabilityLabel(status: string) {
   border-color: var(--accent-cyan);
   color: var(--accent-cyan);
   background: rgba(6, 182, 212, 0.1);
+}
+
+@media (max-width: 768px) {
+  .city-page {
+    padding: 2rem 1.25rem 4rem;
+  }
+  .city-hero h1 {
+    font-size: 1.8rem;
+  }
+  .other-cities-section {
+    padding: 1.25rem;
+    margin-top: 3rem;
+  }
 }
 </style>

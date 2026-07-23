@@ -52,6 +52,9 @@ export default defineNuxtConfig({
         { name: 'author', content: 'fyxi.ru' },
         { name: 'geo.region', content: 'RU' },
         { name: 'geo.placename', content: 'Москва, Россия' },
+        { name: 'theme-color', content: '#0b0a14' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         
         // OpenGraph SEO Meta Tags
         { property: 'og:site_name', content: 'fyxi' },

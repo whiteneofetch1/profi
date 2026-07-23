@@ -364,7 +364,7 @@ function navigateToProfile(event: MouseEvent, profile: any) {
         <!-- Extra Filter Selects -->
         <div class="filter-selects">
           <select v-model="sortBy" class="filter-select" aria-label="Сортировка специалистов">
-            <option value="verified">По рейтингу (Verified)</option>
+            <option value="verified">По рейтингу (Проверенные)</option>
             <option value="price_asc">По цене: сначала недорогие</option>
             <option value="price_desc">По цене: сначала дорогие</option>
             <option value="experience_desc">По опыту работы (лет)</option>
@@ -395,9 +395,25 @@ function navigateToProfile(event: MouseEvent, profile: any) {
     <!-- CARDS DIRECTORY GRID -->
     <section class="catalog-container">
       <h2 class="sr-only">Каталог проверенных специалистов</h2>
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Синхронизация профилей специалистов...</p>
+      <!-- SKELETON LOADING STATE -->
+      <div v-if="loading" class="specialists-grid">
+        <div v-for="n in 6" :key="n" class="skeleton-card">
+          <div class="skeleton-header-box">
+            <UiSkeleton width="60px" height="60px" borderRadius="50%" />
+            <div style="flex: 1;">
+              <UiSkeleton width="140px" height="20px" />
+              <UiSkeleton width="90px" height="14px" style="margin-top: 6px;" />
+            </div>
+          </div>
+          <UiSkeleton width="100%" height="14px" style="margin-top: 16px;" />
+          <UiSkeleton width="75%" height="14px" style="margin-top: 8px;" />
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <UiSkeleton width="60px" height="24px" borderRadius="12px" />
+            <UiSkeleton width="80px" height="24px" borderRadius="12px" />
+            <UiSkeleton width="70px" height="24px" borderRadius="12px" />
+          </div>
+          <UiSkeleton width="100%" height="44px" borderRadius="12px" style="margin-top: 20px;" />
+        </div>
       </div>
 
       <div v-else-if="errorMsg" class="error-state">
@@ -430,7 +446,7 @@ function navigateToProfile(event: MouseEvent, profile: any) {
                   <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="talent-name-link">
                     <h2>{{ cleanName(profile.firstName) }} {{ cleanName(profile.lastName) }}</h2>
                   </NuxtLink>
-                  <span v-if="profile.isVerified" class="verified-check-badge" title="Профиль проверен администратором">✓ Verified</span>
+                  <span v-if="profile.isVerified" class="verified-check-badge" title="Профиль проверен администратором">✓ Проверен</span>
                 </div>
                 <span class="spec-badge">{{ cleanTitle(profile.title) }}</span>
               </div>
@@ -1217,21 +1233,69 @@ p {
   gap: 0.8rem;
 }
 
-.seo-tag-link {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-glow);
-  color: var(--text-primary);
-  padding: 0.5rem 1rem;
-  border-radius: 99px;
-  font-size: 0.88rem;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
 .seo-tag-link:hover {
   border-color: var(--accent-cyan);
   color: var(--accent-cyan);
   transform: translateY(-2px);
+}
+
+/* --- SKELETON CARD STYLES --- */
+.skeleton-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-header-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* --- MOBILE RESPONSIVE MEDIA QUERIES --- */
+@media (max-width: 900px) {
+  .specialists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 1.25rem 2rem;
+  }
+  h1 {
+    font-size: 2.2rem;
+  }
+  .filter-toolbar {
+    padding: 0 1.25rem;
+    gap: 1rem;
+  }
+  .toolbar-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-tabs {
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  .specialists-container {
+    padding: 0 1.25rem;
+  }
+  .specialists-grid {
+    grid-template-columns: 1fr;
+  }
+  .seo-keywords-section {
+    padding: 0 1.25rem;
+  }
+  .seo-keywords-container {
+    padding: 1.5rem 1rem;
+  }
 }
 </style>

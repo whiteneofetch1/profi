@@ -46,8 +46,28 @@ export default async function blogRoutes(fastify: FastifyInstance) {
           }
         });
 
-        // Block access to scheduled posts whose publishDate is in the future
-        if (!post || post.publishDate > new Date()) {
+        if (!post) {
+          return reply.status(404).send({ error: 'Статья не найдена.' });
+        }
+
+        // Check if requester is admin (to allow admin preview of scheduled articles)
+        let isAdmin = false;
+        const authHeader = request.headers.authorization;
+        const cookieToken = request.cookies ? request.cookies.token : null;
+        const rawToken = (authHeader && authHeader.startsWith('Bearer ')) ? authHeader.substring(7) : cookieToken;
+        if (rawToken) {
+          try {
+            const payload = fastify.jwt.verify(rawToken) as any;
+            if (payload && payload.role === 'ADMIN') {
+              isAdmin = true;
+            }
+          } catch (e) {
+            // Guest mode
+          }
+        }
+
+        // Block access to scheduled posts for non-admins whose publishDate is in the future
+        if (!isAdmin && post.publishDate > new Date()) {
           return reply.status(404).send({ error: 'Статья не найдена или еще не опубликована по расписанию.' });
         }
 

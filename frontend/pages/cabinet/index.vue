@@ -28,6 +28,26 @@ const stats = ref<{ unlocksCount: number; briefsCount: number; reviewsCount: num
   averageRating: 0,
 });
 
+const ratingBreakdown = computed(() => {
+  const counts: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  if (!reviews.value || reviews.value.length === 0) {
+    return { counts, total: 0, percents: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+  }
+  reviews.value.forEach((r: any) => {
+    const star = Math.min(5, Math.max(1, Math.round(r.rating || 5)));
+    counts[star] = (counts[star] || 0) + 1;
+  });
+  const total = reviews.value.length;
+  const percents = {
+    5: Math.round(((counts[5] || 0) / total) * 100),
+    4: Math.round(((counts[4] || 0) / total) * 100),
+    3: Math.round(((counts[3] || 0) / total) * 100),
+    2: Math.round(((counts[2] || 0) / total) * 100),
+    1: Math.round(((counts[1] || 0) / total) * 100),
+  };
+  return { counts, total, percents };
+});
+
 // Security tab state
 const currentPassword = ref('');
 const newPassword = ref('');
@@ -519,7 +539,7 @@ async function handleSaveProfile() {
           <form @submit.prevent="handleSaveProfile">
             <!-- AVATAR & BASIC DETAILS -->
             <div class="avatar-form-section" style="display: block; margin-bottom: 2rem;">
-              <UiImageUploader v-model="avatarUrl" label="Ваше фото / Аватар" placeholder="Загрузить фото профиля" />
+              <UiImageUploader v-model="avatarUrl" label="Ваше фото / Аватар" placeholder="Загрузить фото профиля" variant="avatar" />
             </div>
 
             <div class="form-row">
@@ -629,7 +649,7 @@ async function handleSaveProfile() {
             
             <div v-if="isCasesLoading" class="loading-state">Загрузка...</div>
             <div v-else-if="myCases.length === 0" class="empty-state">У вас пока нет добавленных кейсов.</div>
-            <div v-else class="cases-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            <div v-else class="cases-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
               <div v-for="c in myCases" :key="c.id" class="case-card" style="background: var(--surface-light, #1a1b23); border: 1px solid var(--border-color, #2d2e3d); border-radius: 8px; overflow: hidden;">
                 <img v-if="c.coverUrl" :src="c.coverUrl" alt="Cover" style="width: 100%; height: 200px; object-fit: cover;" />
                 <div v-else style="width: 100%; height: 200px; background: #2a2a35; display: flex; align-items: center; justify-content: center; color: #666;">Нет обложки</div>
@@ -688,18 +708,44 @@ async function handleSaveProfile() {
               <span class="empty-sub">Первые отзывы появятся после совместной работы с клиентами платформы.</span>
             </div>
 
-            <div v-else class="reviews-list">
-              <div v-for="r in reviews" :key="r.id" class="review-card">
-                <div class="review-header">
-                  <div>
-                    <span class="reviewer-name">{{ r.clientName || 'Заказчик' }}</span>
-                    <div class="review-stars">
-                      <span v-for="star in 5" :key="star" :class="['star', { filled: star <= r.rating }]">★</span>
-                    </div>
+            <div v-else class="reviews-tab-container">
+              <!-- Rating Analytics summary card -->
+              <div class="rating-summary-card">
+                <div class="score-box">
+                  <span class="score-num">{{ stats.averageRating || '5.0' }}</span>
+                  <div class="score-stars">
+                    <span v-for="s in 5" :key="s" class="star" :class="{ filled: s <= Math.round(stats.averageRating || 5) }">★</span>
                   </div>
-                  <span class="review-date">{{ new Date(r.createdAt).toLocaleDateString('ru-RU') }}</span>
+                  <span class="score-total">На основе {{ stats.reviewsCount }} {{ stats.reviewsCount === 1 ? 'отзыва' : 'отзывов' }}</span>
                 </div>
-                <p v-if="r.comment" class="review-comment">"{{ r.comment }}"</p>
+
+                <div class="bars-box">
+                  <div v-for="starNum in [5, 4, 3, 2, 1]" :key="starNum" class="bar-row">
+                    <span class="bar-star-label">{{ starNum }} ★</span>
+                    <div class="bar-track">
+                      <div class="bar-fill" :style="{ width: ratingBreakdown.percents[starNum as keyof typeof ratingBreakdown.percents] + '%' }"></div>
+                    </div>
+                    <span class="bar-percent">{{ ratingBreakdown.percents[starNum as keyof typeof ratingBreakdown.percents] }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="reviews-list">
+                <div v-for="r in reviews" :key="r.id" class="review-card">
+                  <div class="review-header">
+                    <div class="reviewer-meta">
+                      <div class="reviewer-avatar-initial">{{ (r.authorName || r.clientName || 'З')[0].toUpperCase() }}</div>
+                      <div>
+                        <span class="reviewer-name">{{ r.authorName || r.clientName || 'Заказчик' }}</span>
+                        <div class="review-stars">
+                          <span v-for="star in 5" :key="star" :class="['star', { filled: star <= r.rating }]">★</span>
+                        </div>
+                      </div>
+                    </div>
+                    <span class="review-date">{{ new Date(r.createdAt).toLocaleDateString('ru-RU') }}</span>
+                  </div>
+                  <p v-if="r.comment" class="review-comment">"{{ r.comment }}"</p>
+                </div>
               </div>
             </div>
           </div>
@@ -771,11 +817,11 @@ async function handleSaveProfile() {
 
 <style scoped>
 .cabinet-page {
-  padding: 5rem 2rem;
+  padding: 3rem 1.5rem;
 }
 
 .cabinet-container {
-  max-width: 800px;
+  max-width: 1240px;
   margin: 0 auto;
 }
 
@@ -1313,34 +1359,162 @@ async function handleSaveProfile() {
   white-space: pre-line;
 }
 
-.reviewer-name {
-  font-weight: 700;
-  color: #f1f5f9;
+.reviewer-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.review-stars {
+.reviewer-avatar-initial {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+.rating-summary-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border-glow);
+  padding-right: 1.5rem;
+}
+
+.score-num {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1;
+}
+
+.score-stars {
   display: flex;
   gap: 0.2rem;
-  margin-top: 0.3rem;
+  margin: 0.5rem 0;
 }
 
-.star {
-  color: #475569;
-  font-size: 1.1rem;
+.score-total {
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
-.star.filled {
-  color: #f59e0b;
+.bars-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.review-comment {
-  font-style: italic;
-  color: #e2e8f0;
-  font-size: 0.92rem;
-  margin-top: 0.6rem;
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.bar-star-label {
+  width: 35px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.bar-percent {
+  width: 40px;
+  text-align: right;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
 .security-form {
   max-width: 450px;
+}
+
+/* --- RESPONSIVE MOBILE MEDIA QUERIES --- */
+@media (max-width: 900px) {
+  .rating-summary-card {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .score-box {
+    border-right: none;
+    border-bottom: 1px solid var(--border-glow);
+    padding-right: 0;
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .cabinet-page {
+    padding: 1.5rem 1rem;
+  }
+
+  .profile-editor-box, .auth-box, .client-dashboard {
+    padding: 1.5rem 1rem;
+    border-radius: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .editor-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .kpi-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .brief-header, .review-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 </style>

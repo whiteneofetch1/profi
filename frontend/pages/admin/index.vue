@@ -34,6 +34,18 @@ const selectedErrorForStack = ref<any | null>(null);
 // Reviews State
 const allReviews = ref<any[]>([]);
 const isReviewsLoading = ref(false);
+const reviewRatingFilter = ref('all');
+
+const filteredAdminReviews = computed(() => {
+  if (!allReviews.value) return [];
+  return allReviews.value.filter((r: any) => {
+    if (reviewRatingFilter.value === '5') return r.rating === 5;
+    if (reviewRatingFilter.value === '4') return r.rating === 4;
+    if (reviewRatingFilter.value === 'low') return r.rating <= 3;
+    if (reviewRatingFilter.value === 'hidden') return r.isHidden;
+    return true;
+  });
+});
 
 async function loadReviewsData() {
   const config = useRuntimeConfig();
@@ -256,6 +268,11 @@ const isBlogLoading = ref(false);
 const blogSearchQuery = ref('');
 const blogCategoryFilter = ref('');
 
+function getCleanSlug(slug?: string): string {
+  if (!slug) return '';
+  return slug.trim().replace(/^\/+|\/+$/g, '');
+}
+
 // Modal state
 const isModalOpen = ref(false);
 const isEditing = ref(false);
@@ -359,7 +376,7 @@ async function toggleVerify(profileId: string, currentStatus: boolean) {
       body: { isVerified: nextStatus },
     });
     
-    showToast(nextStatus ? 'Специалисту присвоен бейдж Verified!' : 'Бейдж верификации удален', 'success');
+    showToast(nextStatus ? 'Специалисту присвоен статус Проверен!' : 'Статус "Проверен" удален', 'success');
     loadAdminData();
   } catch (err) {
     showToast('Ошибка при изменении статуса верификации', 'info');
@@ -677,17 +694,19 @@ function formatDate(dateStr: string) {
                     <th>Специализация</th>
                     <th>Контакты для проверки</th>
                     <th>Одобрено в каталог</th>
-                    <th>Бейдж Verified</th>
-                    <th>Управление</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="profile in profiles" :key="profile.id">
                     <td>
                       <div class="spec-name-cell">
-                        <strong>{{ profile.firstName }} {{ profile.lastName }}</strong>
+                        <NuxtLink :to="'/profiles/' + (profile.slug || profile.id)" target="_blank" external class="post-preview-link">
+                          <strong>{{ profile.firstName }} {{ profile.lastName }}</strong>
+                        </NuxtLink>
                         <span class="spec-title-label">{{ profile.title }} • Опыт {{ profile.experienceYears }} лет</span>
-                        <span class="user-email-tag">{{ profile.user.email }}</span>
+                        <span class="user-email-tag">{{ profile.user?.email || profile.email }}</span>
                       </div>
                     </td>
                     <td>
@@ -714,17 +733,22 @@ function formatDate(dateStr: string) {
                         :class="['action-toggle-btn', { verified: profile.isVerified }]" 
                         @click="toggleVerify(profile.id, profile.isVerified)"
                       >
-                        {{ profile.isVerified ? 'Verified' : 'Выдать' }}
+                        {{ profile.isVerified ? 'Проверен' : 'Выдать' }}
                       </button>
                     </td>
                     <td>
-                      <button 
-                        class="action-delete-btn" 
-                        @click="deleteProfile(profile.id, `${profile.firstName} ${profile.lastName}`)"
-                        title="Удалить профиль специалиста"
-                      >
-                        🗑️ Удалить
-                      </button>
+                      <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <NuxtLink :to="'/profiles/' + (profile.slug || profile.id)" target="_blank" external class="cms-btn-view" title="Посмотреть профиль на сайте">
+                          👁️ Профиль
+                        </NuxtLink>
+                        <button 
+                          class="action-delete-btn" 
+                          @click="deleteProfile(profile.id, `${profile.firstName} ${profile.lastName}`)"
+                          title="Удалить профиль специалиста"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -736,38 +760,75 @@ function formatDate(dateStr: string) {
         <!-- TAB REVIEWS -->
         <div v-if="activeTab === 'reviews'" class="tab-content">
           <section class="admin-section">
-            <div class="section-header">
-              <h2>⭐️ Модерация отзывов</h2>
+            <div class="cms-header">
+              <h2>⭐️ Модерация отзывов ({{ allReviews.length }} отзывов)</h2>
+              
+              <div class="filter-box">
+                <select v-model="reviewRatingFilter" class="cms-select">
+                  <option value="all">Все отзывы</option>
+                  <option value="5">⭐⭐⭐⭐⭐ 5 звёзд</option>
+                  <option value="4">⭐⭐⭐⭐ 4 звезды</option>
+                  <option value="low">⚠️ 1–3 звезды (Низкие)</option>
+                  <option value="hidden">🚫 Скрытые отзывы</option>
+                </select>
+              </div>
             </div>
             
-            <div v-if="isReviewsLoading" class="loading-state">
-              Загрузка отзывов...
+            <div v-if="isReviewsLoading" class="loading-bar">
+              Загрузка отзывов клиентов...
             </div>
-            <div v-else-if="allReviews.length === 0" class="empty-state">
-              Нет отзывов
+            <div v-else-if="filteredAdminReviews.length === 0" class="empty-list">
+              Отзывов по выбранному фильтру не найдено.
             </div>
-            <div v-else class="reviews-list" style="display: flex; flex-direction: column; gap: 1rem;">
-              <div v-for="review in allReviews" :key="review.id" class="review-card" :class="{ 'is-hidden': review.isHidden }" style="background: var(--surface-light); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <div class="review-header" style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                  <div class="review-author" style="display: flex; gap: 1rem; align-items: center;">
-                    <strong style="color: var(--text-primary); font-size: 1.1rem;">{{ review.authorName }}</strong>
-                    <span class="review-rating" style="background: rgba(250, 204, 21, 0.1); color: var(--warning-color); padding: 0.25rem 0.5rem; border-radius: 4px;">{{ review.rating }} ⭐️</span>
-                    <span class="review-date" style="color: var(--text-muted); font-size: 0.85rem;">{{ new Date(review.createdAt).toLocaleDateString('ru-RU') }}</span>
+            <div v-else class="reviews-moderation-grid">
+              <div v-for="review in filteredAdminReviews" :key="review.id" class="admin-review-card" :class="{ 'is-hidden': review.isHidden }">
+                <div class="admin-review-header">
+                  <div class="review-author-box">
+                    <strong class="author-name-title">👤 {{ review.authorName }}</strong>
+                    <div class="review-rating-badge">
+                      <span class="star-gold" v-for="s in review.rating" :key="s">★</span>
+                      <span class="rating-val">{{ review.rating }}.0</span>
+                    </div>
+                    <span class="review-date-badge">{{ new Date(review.createdAt).toLocaleDateString('ru-RU') }}</span>
                   </div>
-                  <div class="review-target" v-if="review.devProfile">
-                    <NuxtLink :to="`/profiles/${review.devProfile.slug || review.devProfileId}`" target="_blank" style="color: var(--primary-color);">Профиль: {{ review.devProfile.firstName }} {{ review.devProfile.lastName }}</NuxtLink>
+
+                  <div class="review-target-box" v-if="review.devProfile">
+                    <NuxtLink 
+                      :to="`/profiles/${review.devProfile.slug || review.devProfileId}`" 
+                      target="_blank" 
+                      external 
+                      class="cms-btn-view"
+                    >
+                      👁️ {{ review.devProfile.firstName }} {{ review.devProfile.lastName }}
+                    </NuxtLink>
                   </div>
                 </div>
-                <div class="review-body" style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
-                  <p>{{ review.comment }}</p>
+
+                <div class="admin-review-content">
+                  <p>"{{ review.comment }}"</p>
                 </div>
-                <div class="review-actions" style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                  <button class="action-btn toggle-visibility-btn" @click="toggleReviewVisibility(review.id, review.isHidden)" :style="{ background: review.isHidden ? 'rgba(52, 211, 153, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: review.isHidden ? 'var(--success-color)' : 'var(--warning-color)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-sm)' }">
-                    {{ review.isHidden ? '👁 Восстановить' : '🚫 Скрыть' }}
-                  </button>
-                  <button class="action-btn delete-btn" @click="deleteReviewAdmin(review.id)" style="background: rgba(239, 68, 68, 0.1); color: var(--danger-color); padding: '0.5rem 1rem'; borderRadius: 'var(--radius-sm)'">
-                    🗑 Безвозвратно удалить
-                  </button>
+
+                <div class="admin-review-footer">
+                  <span :class="['status-badge', review.isHidden ? 'scheduled' : 'published']">
+                    {{ review.isHidden ? '🚫 Скрыт в каталоге' : '✅ Опубликован' }}
+                  </span>
+
+                  <div class="admin-review-actions">
+                    <button 
+                      class="cms-btn-view" 
+                      @click="toggleReviewVisibility(review.id, review.isHidden)"
+                      :title="review.isHidden ? 'Опубликовать снова' : 'Скрыть от клиентов'"
+                    >
+                      {{ review.isHidden ? '👁 Восстановить' : '🚫 Скрыть' }}
+                    </button>
+                    <button 
+                      class="cms-btn-delete" 
+                      @click="deleteReviewAdmin(review.id)"
+                      title="Удалить отзыв"
+                    >
+                      🗑️ Удалить
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -822,10 +883,12 @@ function formatDate(dateStr: string) {
                   <tr v-for="post in filteredBlogPosts" :key="post.id">
                     <td>
                       <div class="spec-name-cell">
-                        <NuxtLink :to="'/blog/' + post.slug" target="_blank" class="post-preview-link">
+                        <NuxtLink :to="'/blog/' + getCleanSlug(post.slug)" target="_blank" external class="post-preview-link">
                           <strong>{{ post.title }}</strong>
                         </NuxtLink>
-                        <code class="post-slug-label">/blog/{{ post.slug }}</code>
+                        <NuxtLink :to="'/blog/' + getCleanSlug(post.slug)" target="_blank" external class="post-slug-label-link">
+                          <code class="post-slug-label">/blog/{{ getCleanSlug(post.slug) }}</code>
+                        </NuxtLink>
                       </div>
                     </td>
                     <td>
@@ -847,8 +910,17 @@ function formatDate(dateStr: string) {
                     </td>
                     <td>
                       <div class="cms-actions-cell">
-                        <button class="cms-btn-edit" @click="openEditModal(post)">✏️</button>
-                        <button class="cms-btn-delete" @click="deleteBlogPost(post.id)">🗑️</button>
+                        <NuxtLink 
+                          :to="'/blog/' + getCleanSlug(post.slug)" 
+                          target="_blank" 
+                          external 
+                          class="cms-btn-view"
+                          title="Перейти к статье и посмотреть"
+                        >
+                          👁️ Читать
+                        </NuxtLink>
+                        <button class="cms-btn-edit" @click="openEditModal(post)" title="Редактировать статью">✏️</button>
+                        <button class="cms-btn-delete" @click="deleteBlogPost(post.id)" title="Удалить статью">🗑️</button>
                       </div>
                     </td>
                   </tr>
@@ -950,6 +1022,17 @@ function formatDate(dateStr: string) {
             </div>
 
             <footer class="modal-footer">
+              <NuxtLink 
+                v-if="formPost.slug" 
+                :to="'/blog/' + getCleanSlug(formPost.slug)" 
+                target="_blank" 
+                external 
+                class="cms-btn-view"
+                style="margin-right: auto;"
+                title="Предпросмотр статьи"
+              >
+                👁️ Предпросмотр статьи
+              </NuxtLink>
               <button class="cancel-modal-btn" @click="isModalOpen = false">Отмена</button>
               <button :disabled="isSavingPost" class="submit-modal-btn" @click="saveBlogPost">
                 {{ isSavingPost ? 'Сохранение...' : 'Сохранить статью' }}
@@ -1367,6 +1450,12 @@ function formatDate(dateStr: string) {
   overflow-x: auto;
 }
 
+.table-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
 .moderation-table {
   width: 100%;
   border-collapse: collapse;
@@ -1511,16 +1600,29 @@ function formatDate(dateStr: string) {
 .cms-actions-cell {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
-.cms-btn-edit, .cms-btn-delete {
+.cms-btn-edit, .cms-btn-delete, .cms-btn-view {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 0.45rem;
+  padding: 0.45rem 0.65rem;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 500;
+}
+
+.cms-btn-view:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: #6366f1;
+  color: #818cf8;
 }
 
 .cms-btn-edit:hover {
@@ -1531,6 +1633,17 @@ function formatDate(dateStr: string) {
 .cms-btn-delete:hover {
   background: rgba(239, 68, 68, 0.1);
   border-color: #ef4444;
+}
+
+.post-slug-label-link {
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 0.2rem;
+}
+
+.post-slug-label-link:hover .post-slug-label {
+  color: var(--primary-color);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 /* --- MODAL OVERLAY --- */
@@ -1880,5 +1993,131 @@ function formatDate(dateStr: string) {
 .credentials-hint code {
   color: #38bdf8;
   font-weight: 700;
+}
+
+/* --- REVIEWS MODERATION GRID --- */
+.reviews-moderation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.admin-review-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.admin-review-card.is-hidden {
+  opacity: 0.65;
+  border-color: rgba(234, 179, 8, 0.3);
+  background: rgba(234, 179, 8, 0.02);
+}
+
+.admin-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.review-author-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.author-name-title {
+  color: #f1f5f9;
+  font-size: 1.05rem;
+}
+
+.review-rating-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.star-gold {
+  color: #f59e0b;
+  font-size: 0.85rem;
+}
+
+.rating-val {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #facc15;
+}
+
+.review-date-badge {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.admin-review-content {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 1.2rem;
+}
+
+.admin-review-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-review-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* --- MOBILE RESPONSIVE MEDIA QUERIES --- */
+.moderation-table-container, .moderation-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 1.5rem 1rem;
+  }
+  .admin-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+  .admin-tabs .tab-btn {
+    white-space: nowrap;
+  }
+  .cms-header-bar, .cms-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .cms-action-bar, .cms-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-review-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-review-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 }
 </style>

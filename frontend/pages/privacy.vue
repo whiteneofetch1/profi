@@ -139,13 +139,19 @@ useHead({
   border-top: 1px solid var(--border-glow);
 }
 
-.back-link {
-  color: var(--accent-cyan);
-  text-decoration: none;
-  font-weight: 500;
-}
-
 .back-link:hover {
   color: #fff;
+}
+
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 2rem 1.25rem;
+  }
+  .legal-card {
+    padding: 1.5rem 1.25rem;
+  }
+  .legal-header h1 {
+    font-size: 1.8rem;
+  }
 }
 </style>

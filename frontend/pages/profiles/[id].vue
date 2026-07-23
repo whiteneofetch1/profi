@@ -21,7 +21,7 @@ const error = computed(() => {
   return (fetchError.value as any).data?.error || 'Специалист не найден или база данных временно недоступна.';
 });
 
-// Generate some premium visual mock works for the designer
+const selectedCaseForLightbox = ref<any | null>(null);
 const mockWorks = [
   {
     title: 'Porsche Russia Concept',
@@ -165,6 +165,28 @@ const fetchReviews = async () => {
   }
 };
 
+const hoverRating = ref(0);
+
+function getRatingLabel(val: number) {
+  switch (val) {
+    case 5: return '5 / 5 — Превосходно ⭐⭐⭐⭐⭐';
+    case 4: return '4 / 5 — Хорошо ⭐⭐⭐⭐';
+    case 3: return '3 / 5 — Нормально ⭐⭐⭐';
+    case 2: return '2 / 5 — Были нюансы ⭐⭐';
+    case 1: return '1 / 5 — Плохо ⭐';
+    default: return 'Выберите оценку (нажмите на звёзды)';
+  }
+}
+
+function getInitials(name?: string) {
+  if (!name) return '👤';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
 onMounted(() => {
   fetchReviews();
 });
@@ -260,7 +282,7 @@ function handleAddToCart() {
             <div class="avatar-holder">
               <img v-if="profile.avatarUrl" :src="profile.avatarUrl" :alt="profile.firstName" class="profile-avatar-img" />
               <span v-else class="initials">{{ profile.firstName[0] }}{{ profile.lastName[0] }}</span>
-              <span v-if="profile.isVerified" class="verified-seal" title="Верифицированный профиль">✓ Verified</span>
+              <span v-if="profile.isVerified" class="verified-seal" title="Верифицированный профиль">✓ Проверен</span>
             </div>
 
             <h1 class="spec-name">{{ profile.firstName }} {{ profile.lastName }}</h1>
@@ -349,7 +371,13 @@ function handleAddToCart() {
             <p class="section-subtitle">Работы выполненные специалистом на платформе Tilda в Zero Block:</p>
 
             <div class="showcase-grid">
-              <div v-for="work in profile.cases" :key="work.id" class="showcase-card">
+              <div 
+                v-for="work in profile.cases" 
+                :key="work.id" 
+                class="showcase-card"
+                style="cursor: pointer;"
+                @click="selectedCaseForLightbox = work"
+              >
                 <div class="card-glow-overlay"></div>
                 
                 <div class="showcase-image-box" style="height: 240px; overflow: hidden; position: relative;">
@@ -415,11 +443,17 @@ function handleAddToCart() {
             <div v-else class="reviews-grid">
               <div v-for="rev in reviews" :key="rev.id" class="review-card">
                 <div class="review-meta">
-                  <span class="author-name">👤 {{ rev.authorName }}</span>
-                  <span class="verified-badge">✓ Проверенный клиент</span>
-                  <span class="review-stars">{{ '⭐'.repeat(rev.rating) }}</span>
+                  <div class="reviewer-avatar-initial">{{ getInitials(rev.authorName) }}</div>
+                  <div class="reviewer-info">
+                    <span class="author-name">{{ rev.authorName }}</span>
+                    <span class="verified-badge">✓ Проверенный заказчик</span>
+                  </div>
+                  <div class="review-stars-badge">
+                    <span class="star-gold" v-for="s in (rev.rating || 5)" :key="s">★</span>
+                    <span class="rating-num">{{ rev.rating }}.0</span>
+                  </div>
                 </div>
-                <p class="review-text">{{ rev.comment }}</p>
+                <p class="review-text">"{{ rev.comment }}"</p>
               </div>
             </div>
           </section>
@@ -495,14 +529,24 @@ function handleAddToCart() {
           </div>
 
           <div class="form-group full-width">
-            <label>Оценка (1–5 звезд)</label>
-            <select v-model.number="newReview.rating" class="form-input">
-              <option :value="5">⭐⭐⭐⭐⭐ (5 / 5) Превосходно</option>
-              <option :value="4">⭐⭐⭐⭐ (4 / 5) Хорошо</option>
-              <option :value="3">⭐⭐⭐ (3 / 5) Нормально</option>
-              <option :value="2">⭐⭐ (2 / 5) Были нюансы</option>
-              <option :value="1">⭐ (1 / 5) Плохо</option>
-            </select>
+            <label>Ваша оценка *</label>
+            <div class="star-rating-picker">
+              <div class="stars-row">
+                <button 
+                  v-for="star in 5" 
+                  :key="star" 
+                  type="button" 
+                  class="star-picker-btn"
+                  :class="{ 'active': star <= (hoverRating || newReview.rating) }"
+                  @mouseenter="hoverRating = star"
+                  @mouseleave="hoverRating = 0"
+                  @click="newReview.rating = star"
+                >
+                  ★
+                </button>
+              </div>
+              <span class="rating-label-text">{{ getRatingLabel(hoverRating || newReview.rating) }}</span>
+            </div>
           </div>
 
           <div class="form-group full-width">
@@ -516,6 +560,63 @@ function handleAddToCart() {
           <button :disabled="isSubmittingReview" class="submit-modal-btn" @click="submitReview">
             {{ isSubmittingReview ? 'Публикация...' : 'Опубликовать отзыв' }}
           </button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- STICKY MOBILE CTA BAR -->
+    <div v-if="profile && !profile.isUnlocked" class="sticky-mobile-cta-bar">
+      <div class="sticky-cta-content">
+        <div class="sticky-price-info">
+          <span class="sticky-price-title">Контакты {{ profile.firstName }}</span>
+          <span class="sticky-price-amount">500 ₽</span>
+        </div>
+        <button 
+          v-if="!cart.isInCart(profile.id)" 
+          class="sticky-cart-btn"
+          @click="handleAddToCart"
+        >
+          🛒 В корзину
+        </button>
+        <button 
+          v-else 
+          class="sticky-cart-btn added"
+          @click="cart.toggleDrawer(true)"
+        >
+          ✅ В корзине
+        </button>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO LIGHTBOX MODAL -->
+    <div v-if="selectedCaseForLightbox" class="modal-overlay" @click="selectedCaseForLightbox = null">
+      <div class="modal-card lightbox-modal-card" @click.stopPropagation>
+        <header class="modal-header">
+          <h3>🎨 {{ selectedCaseForLightbox.title }}</h3>
+          <button class="close-modal-btn" @click="selectedCaseForLightbox = null">×</button>
+        </header>
+
+        <div class="modal-body lightbox-body">
+          <div v-if="selectedCaseForLightbox.coverUrl" class="lightbox-image-box">
+            <img :src="selectedCaseForLightbox.coverUrl" :alt="selectedCaseForLightbox.title" class="lightbox-img" />
+          </div>
+          <p class="lightbox-desc">{{ selectedCaseForLightbox.description }}</p>
+          <div class="lightbox-tags" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+            <span v-for="t in selectedCaseForLightbox.techStack" :key="t" class="case-tag" style="background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;">#{{ t }}</span>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="cancel-modal-btn" @click="selectedCaseForLightbox = null">Закрыть</button>
+          <a 
+            v-if="selectedCaseForLightbox.projectUrl" 
+            :href="selectedCaseForLightbox.projectUrl" 
+            target="_blank" 
+            class="submit-modal-btn" 
+            style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;"
+          >
+            🔗 Открыть проект
+          </a>
         </footer>
       </div>
     </div>
@@ -868,7 +969,7 @@ h2 {
 
 .showcase-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 2rem;
 }
 
@@ -1082,11 +1183,86 @@ h2 {
   padding: 1.5rem;
 }
 
-.review-meta {
+.reviewer-avatar-initial {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.8rem;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+.reviewer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.review-stars-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+}
+
+.star-gold {
+  color: #f59e0b;
+  font-size: 0.95rem;
+}
+
+.rating-num {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+/* --- STAR RATING PICKER --- */
+.star-rating-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glow);
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.stars-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.star-picker-btn {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+  padding: 0.2rem;
+}
+
+.star-picker-btn.active, .star-picker-btn:hover {
+  color: #f59e0b;
+  transform: scale(1.15);
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
+
+.rating-label-text {
+  font-size: 0.85rem;
+  color: #818cf8;
+  font-weight: 600;
 }
 
 .author-name {
@@ -1104,14 +1280,118 @@ h2 {
   font-weight: 600;
 }
 
-.review-stars {
-  margin-left: auto;
-  letter-spacing: 2px;
-}
-
 .review-text {
   color: var(--text-muted);
   font-size: 0.95rem;
   line-height: 1.5;
+  font-style: italic;
+}
+
+/* --- STICKY MOBILE CTA BAR --- */
+.sticky-mobile-cta-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background: rgba(9, 13, 22, 0.92);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-glow);
+  padding: 0.85rem 1.25rem;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.sticky-cta-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sticky-price-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sticky-price-title {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.sticky-price-amount {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.sticky-cart-btn {
+  background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+}
+
+.sticky-cart-btn.added {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10b981;
+  box-shadow: none;
+}
+
+/* --- LIGHTBOX MODAL STYLES --- */
+.lightbox-modal-card {
+  max-width: 800px;
+  width: 90vw;
+}
+
+.lightbox-image-box {
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  max-height: 480px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+}
+
+.lightbox-desc {
+  font-size: 1rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .sticky-mobile-cta-bar {
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  .review-meta {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .review-stars-badge {
+    margin-left: 0;
+  }
 }
 </style>

@@ -123,6 +123,25 @@ describe('E2E Lifecycle of Automated Scheduled Articles', () => {
     const guestDetailBody = JSON.parse(guestDetailResponse.body);
     expect(guestDetailBody.error).toContain('не найдена или еще не опубликована');
 
+    // 3b. ADMIN REQUESTS DETAIL BY SLUG (GET /blog/:slug) -> MUST RETURN 200 OK FOR ADMIN PREVIEW
+    const adminDetailResponseCookie = await app.inject({
+      method: 'GET',
+      url: '/blog/sekrety-avtomatizatsii-seo',
+      headers: { Cookie: `token=${adminToken}` },
+    });
+    expect(adminDetailResponseCookie.statusCode).toBe(200);
+    const adminDetailBodyCookie = JSON.parse(adminDetailResponseCookie.body);
+    expect(adminDetailBodyCookie.title).toBe('Секреты автоматизации SEO');
+
+    const adminDetailResponseBearer = await app.inject({
+      method: 'GET',
+      url: '/blog/sekrety-avtomatizatsii-seo',
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(adminDetailResponseBearer.statusCode).toBe(200);
+    const adminDetailBodyBearer = JSON.parse(adminDetailResponseBearer.body);
+    expect(adminDetailBodyBearer.title).toBe('Секреты автоматизации SEO');
+
     // 4. ADMIN REQUESTS CMS LIST (GET /admin/blog) -> MUST CONTAIN FUTURE ARTICLE
     const adminListResponse = await app.inject({
       method: 'GET',

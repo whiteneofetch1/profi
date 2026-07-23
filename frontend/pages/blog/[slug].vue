@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useAuthStore } from '~/stores/auth';
 
 const route = useRoute();
 let slug = route.params.slug as string;
@@ -13,9 +14,18 @@ try {
 } catch (e) {}
 
 const config = useRuntimeConfig();
+const authStore = useAuthStore();
+const tokenCookie = useCookie('token');
+const userToken = authStore.token || tokenCookie.value;
+const fetchHeaders: Record<string, string> = {};
+if (userToken) {
+  fetchHeaders.authorization = `Bearer ${userToken}`;
+}
 
 // Fetch article dynamically from Fastify backend
-const { data: article } = await useFetch<any>(`${config.public.apiUrl}/blog/${encodeURIComponent(slug)}`);
+const { data: article } = await useFetch<any>(`${config.public.apiUrl}/blog/${encodeURIComponent(slug)}`, {
+  headers: fetchHeaders,
+});
 
 // If the article is not found or is scheduled in the future, Nuxt will return 404
 if (!article.value) {
@@ -569,7 +579,7 @@ function formatDate(dateStr: string) {
 
 .related-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
 }
 
@@ -656,5 +666,35 @@ function formatDate(dateStr: string) {
 .related-read-time {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .article-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .article-sidebar {
+    position: static;
+  }
+  .article-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .article-container {
+    padding: 1.5rem 1rem;
+  }
+  .article-title {
+    font-size: 1.6rem;
+  }
+  .article-content img {
+    max-width: 100%;
+    height: auto;
+  }
+  .article-content pre {
+    overflow-x: auto;
+    max-width: 100%;
+  }
 }
 </style>

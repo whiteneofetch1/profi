@@ -6,6 +6,9 @@ import { useCartStore } from '~/stores/cart';
 const auth = useAuthStore();
 const cart = useCartStore();
 
+// Mobile menu toggle
+const isMobileMenuOpen = ref(false);
+
 // Guest checkout fields
 const guestEmail = ref('');
 const checkoutError = ref('');
@@ -23,11 +26,23 @@ function showToast(message: string, type: 'success' | 'info' = 'info') {
   }, 4000);
 }
 
+function removeToast(id: number) {
+  toasts.value = toasts.value.filter(t => t.id !== id);
+}
+
+function handleGlobalKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    if (cart.isDrawerOpen) cart.toggleDrawer(false);
+    if (isMobileMenuOpen.value) isMobileMenuOpen.value = false;
+  }
+}
+
 // Expose toast so children pages can trigger it
 provide('showToast', showToast);
 
 // Check current session on mount
 onMounted(async () => {
+  window.addEventListener('keydown', handleGlobalKeydown);
   await auth.fetchUser();
   
   // Parse redirect query flags from payment simulator
@@ -37,6 +52,10 @@ onMounted(async () => {
   } else if (route.query.payment === 'cancel') {
     showToast('Платеж отменен пользователем', 'info');
   }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown);
 });
 
 // Checkout execution
@@ -77,28 +96,35 @@ async function handleCheckout() {
     <!-- HEADER / NAVIGATION -->
     <header class="main-header">
       <div class="nav-container">
-        <NuxtLink to="/" class="logo">fyxi<span class="logo-dot"></span></NuxtLink>
-        <nav>
-          <NuxtLink to="/" active-class="active">Каталог</NuxtLink>
-          <NuxtLink to="/blog" active-class="active">Статьи</NuxtLink>
+        <NuxtLink to="/" class="logo" @click="isMobileMenuOpen = false">fyxi<span class="logo-dot"></span></NuxtLink>
+        
+        <!-- Mobile Burger Toggle Button -->
+        <button class="mobile-burger-btn" @click="isMobileMenuOpen = !isMobileMenuOpen" aria-label="Toggle Navigation Menu">
+          <span v-if="!isMobileMenuOpen">☰</span>
+          <span v-else>✕</span>
+        </button>
+
+        <nav class="desktop-nav" :class="{ 'mobile-menu-open': isMobileMenuOpen }">
+          <NuxtLink to="/" active-class="active" @click="isMobileMenuOpen = false">Каталог</NuxtLink>
+          <NuxtLink to="/blog" active-class="active" @click="isMobileMenuOpen = false">Статьи</NuxtLink>
           
           <!-- Admin Panel Button -->
-          <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-btn admin-link" active-class="active">Админка</NuxtLink>
+          <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-btn admin-link" active-class="active" @click="isMobileMenuOpen = false">Админка</NuxtLink>
           
           <!-- Specialist Cabinet Button -->
-          <NuxtLink v-if="auth.isDeveloper" to="/cabinet" class="nav-btn cabinet-link" active-class="active">Мой профиль</NuxtLink>
+          <NuxtLink v-if="auth.isDeveloper" to="/cabinet" class="nav-btn cabinet-link" active-class="active" @click="isMobileMenuOpen = false">Мой профиль</NuxtLink>
           
           <!-- Auth session buttons -->
           <template v-if="auth.isAuthenticated">
             <span class="session-email">{{ auth.user?.email }}</span>
-            <button class="logout-btn" @click="auth.logout()">Выйти</button>
+            <button class="logout-btn" @click="auth.logout(); isMobileMenuOpen = false;">Выйти</button>
           </template>
           <template v-else>
-            <NuxtLink to="/cabinet" class="login-nav-btn">Разработчикам</NuxtLink>
+            <NuxtLink to="/cabinet" class="login-nav-btn" @click="isMobileMenuOpen = false">Разработчикам</NuxtLink>
           </template>
 
           <!-- Shopping Cart trigger -->
-          <button class="cart-btn" @click="cart.toggleDrawer(true)">
+          <button class="cart-btn" @click="cart.toggleDrawer(true); isMobileMenuOpen = false;">
             <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
               <path d="M17 18c-1.11 0-2 .89-2 2a2 2 0 0 0 2 2 2 2 0 0 0 2-2c0-1.11-.89-2-2-2M7 18c-1.11 0-2 .9 2 2a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2m2.84-4h6.06c.75 0 1.41-.41 1.75-1.03l3.58-6.47c.37-.63-.09-1.5-.82-1.5H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96a2 2 0 0 0 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"/>
             </svg>
@@ -215,7 +241,8 @@ async function handleCheckout() {
         :class="['toast', { 'toast-success': toast.type === 'success' }]"
       >
         <span style="font-size: 1.1rem;">{{ toast.type === 'success' ? '✅' : '🔔' }}</span>
-        <span>{{ toast.message }}</span>
+        <span style="flex: 1;">{{ toast.message }}</span>
+        <button class="close-toast-btn" @click="removeToast(toast.id)" aria-label="Close Toast">×</button>
       </div>
     </div>
   </div>
@@ -262,50 +289,62 @@ async function handleCheckout() {
   box-shadow: 0 0 10px var(--accent-cyan);
 }
 
-nav {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-nav a {
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-nav a:hover, nav a.active {
-  color: var(--text-primary);
-}
-
-.session-email {
-  font-size: 0.85rem;
-  color: var(--accent-cyan);
-  border-right: 1px solid var(--border-glow);
-  padding-right: 1rem;
-}
-
-.logout-btn {
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-.login-nav-btn {
-  background: rgba(255, 255, 255, 0.03);
+.mobile-burger-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-glow);
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  transition: all 0.3s ease;
+  color: #fff;
+  font-size: 1.3rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  line-height: 1;
 }
 
-.login-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 1rem 1.25rem;
+    position: relative;
+  }
+
+  .mobile-burger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .desktop-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #090d16;
+    border-bottom: 1px solid var(--border-glow);
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.2rem;
+    align-items: flex-start;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+    z-index: 100;
+  }
+
+  .desktop-nav.mobile-menu-open {
+    display: flex;
+  }
+
+  .session-email {
+    border-right: none;
+    padding-right: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-glow);
+    width: 100%;
+  }
+
+  .cart-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .cart-btn {
@@ -417,6 +456,14 @@ nav a:hover, nav a.active {
   flex-direction: column;
   transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   padding: 2.5rem 2rem;
+}
+
+@media (max-width: 600px) {
+  .cart-drawer {
+    max-width: 100vw;
+    right: -100vw;
+    padding: 1.5rem 1.25rem;
+  }
 }
 
 .drawer-overlay.open .cart-drawer {
@@ -628,5 +675,37 @@ nav a:hover, nav a.active {
 .empty-cart-icon {
   font-size: 3rem;
   opacity: 0.4;
+}
+
+.close-toast-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.2rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.close-toast-btn:hover {
+  opacity: 1;
+  color: #fff;
+}
+
+.toast {
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 </style>
