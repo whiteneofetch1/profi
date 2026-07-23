@@ -4,21 +4,32 @@ import { generateProfileSlug } from '../utils/translit';
 
 export default async function profileRoutes(fastify: FastifyInstance) {
   async function findProfileByIdOrSlug(param: string) {
-    return await fastify.prisma.devProfile.findFirst({
-      where: {
-        OR: [
-          { id: param },
-          { slug: param }
-        ]
-      },
-      include: {
-        user: {
-          select: {
-            lastActive: true,
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(param);
+    const repo = fastify.prisma.devProfile as any;
+    if (typeof repo.findFirst === 'function') {
+      const whereClause = isUuid ? { OR: [{ id: param }, { slug: param }] } : { slug: param };
+      return await repo.findFirst({
+        where: whereClause,
+        include: {
+          user: {
+            select: {
+              lastActive: true,
+            },
           },
         },
-      },
-    });
+      });
+    } else {
+      return await repo.findUnique({
+        where: { id: param },
+        include: {
+          user: {
+            select: {
+              lastActive: true,
+            },
+          },
+        },
+      });
+    }
   }
 
   
@@ -70,10 +81,11 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       // GATING LOGIC: Read current user's unlocked list if they are authenticated
       let unlockedProfileIds: String[] = [];
       const authHeader = request.headers.authorization;
-      if (authHeader && authHeader.startsWith('Bearer ')) {
+      const cookieToken = request.cookies ? request.cookies.token : null;
+      const rawToken = (authHeader && authHeader.startsWith('Bearer ')) ? authHeader.substring(7) : cookieToken;
+      if (rawToken) {
         try {
-          const token = authHeader.substring(7);
-          const payload = fastify.jwt.verify(token) as any;
+          const payload = fastify.jwt.verify(rawToken) as any;
           if (payload && payload.id) {
             const activePurchases = await fastify.prisma.unlockedProfile.findMany({
               where: {
@@ -94,6 +106,8 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       }
 
       // Format response, strictly obfuscating gated contact data
+      const gatedProfiles = profiles.map(profile => {
+        const isUnlocked = unlockedProfileIds.includes(profile.id);
         const slug = profile.slug || generateProfileSlug(profile.firstName, profile.lastName, profile.id);
 
         return {
@@ -141,10 +155,11 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       // Check unlock status for active user
       let isUnlocked = false;
       const singleAuthHeader = request.headers.authorization;
-      if (singleAuthHeader && singleAuthHeader.startsWith('Bearer ')) {
+      const singleCookieToken = request.cookies ? request.cookies.token : null;
+      const singleToken = (singleAuthHeader && singleAuthHeader.startsWith('Bearer ')) ? singleAuthHeader.substring(7) : singleCookieToken;
+      if (singleToken) {
         try {
-          const token = singleAuthHeader.substring(7);
-          const payload = fastify.jwt.verify(token) as any;
+          const payload = fastify.jwt.verify(singleToken) as any;
           if (payload && payload.id) {
             // Admins or the developer themselves can always see their own contacts
             if (payload.role === 'ADMIN' || profile.userId === payload.id) {
