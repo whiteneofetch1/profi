@@ -110,23 +110,57 @@ async function clearAllErrors() {
   }
 }
 
-async function copyErrorReportForAI() {
+async function copyErrorReport() {
   const activeErrors = errorLogs.value.filter(l => !l.resolved);
   if (activeErrors.length === 0) {
     showToast('Активных ошибок не обнаружено!', 'info');
     return;
   }
 
-  let report = `=== ОТЧЁТ ОБ ОШИБКАХ FYXI.RU (${activeErrors.length} активных) ===\n\n`;
-  activeErrors.forEach((err, idx) => {
-    report += `[${idx + 1}] Уровень: ${err.level} | Источник: ${err.source}\n`;
-    report += `Сообщение: ${err.message}\n`;
-    report += `Путь: ${err.method ? err.method + ' ' : ''}${err.path || '—'}\n`;
-    report += `Дата: ${new Date(err.createdAt).toLocaleString()}\n`;
+  // 1. Calculate Summary Stats
+  const totalCount = activeErrors.length;
+  const errorCount = activeErrors.filter(l => l.level === 'ERROR').length;
+  const warnCount = activeErrors.filter(l => l.level === 'WARN').length;
+  const frontendCount = activeErrors.filter(l => l.source === 'FRONTEND').length;
+  const backendCount = activeErrors.filter(l => l.source === 'BACKEND').length;
+
+  // 2. Group duplicate error logs by message + path
+  const groupedMap = new Map<string, { err: any; count: number; lastSeen: Date }>();
+
+  activeErrors.forEach(err => {
+    const key = `${err.level}|${err.source}|${err.message}|${err.path || ''}`;
+    if (!groupedMap.has(key)) {
+      groupedMap.set(key, { err, count: 1, lastSeen: new Date(err.createdAt) });
+    } else {
+      const existing = groupedMap.get(key)!;
+      existing.count += 1;
+      const currentDate = new Date(err.createdAt);
+      if (currentDate > existing.lastSeen) {
+        existing.lastSeen = currentDate;
+      }
+    }
+  });
+
+  // 3. Build Header
+  let report = `=== ОТЧЁТ ОБ ОШИБКАХ FYXI.RU ===\n`;
+  report += `📊 Всего активных: ${totalCount} | ❌ Ошибок: ${errorCount} | ⚠️ Предупреждений: ${warnCount}\n`;
+  report += `🌐 Фронтенд: ${frontendCount} | ⚙️ Бэкенд: ${backendCount} | 👥 Уникальных типов: ${groupedMap.size}\n\n`;
+
+  // 4. Build Grouped Entries
+  let index = 1;
+  groupedMap.forEach(({ err, count, lastSeen }) => {
+    report += `[${index}] [${err.level}] [${err.source}] ${err.message}\n`;
+    if (count > 1) {
+      report += `🔥 Повторений: ${count} раз | Последнее проявление: ${lastSeen.toLocaleString()}\n`;
+    } else {
+      report += `📅 Дата: ${new Date(err.createdAt).toLocaleString()}\n`;
+    }
+    report += `📍 Путь: ${err.method ? err.method + ' ' : ''}${err.path || '—'}\n`;
     if (err.stack) {
       report += `Stack Trace:\n${err.stack.slice(0, 400)}\n`;
     }
     report += `--------------------------------------------------\n`;
+    index++;
   });
 
   try {
@@ -840,8 +874,8 @@ function formatDate(dateStr: string) {
             </div>
 
             <div class="cms-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <button class="add-post-btn" @click="copyErrorReportForAI">
-                📋 Скопировать отчёт для ИИ
+              <button class="add-post-btn" @click="copyErrorReport">
+                📋 Скопировать отчёт
               </button>
               <button class="btn-clear-errors" @click="clearResolvedErrors">
                 🧹 Очистить исправленные
