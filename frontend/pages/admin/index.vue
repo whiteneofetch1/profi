@@ -1162,7 +1162,7 @@ function formatDate(dateStr: string) {
         </div>
 
         <!-- STACK TRACE MODAL -->
-        <div v-if="selectedErrorForStack" class="modal-overlay" @click="selectedErrorForStack = null">
+        <div v-if="selectedErrorForStack" class="modal-overlay" @click.self="selectedErrorForStack = null">
           <div class="modal-card stack-modal" @click.stopPropagation>
             <header class="modal-header">
               <h3>📄 Детализация ошибки и Stack Trace</h3>

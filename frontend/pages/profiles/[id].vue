@@ -464,7 +464,7 @@ function handleAddToCart() {
     </div>
 
     <!-- BRIEF MODAL -->
-    <div v-if="isBriefModalOpen" class="modal-overlay" @click="isBriefModalOpen = false">
+    <div v-if="isBriefModalOpen" class="modal-overlay" @click.self="isBriefModalOpen = false">
       <div class="modal-card brief-modal" @click.stopPropagation>
         <header class="modal-header">
           <h3>📋 Конструктор Брифа проекта для {{ profile.firstName }}</h3>
@@ -515,7 +515,7 @@ function handleAddToCart() {
     </div>
 
     <!-- REVIEW MODAL -->
-    <div v-if="isReviewModalOpen" class="modal-overlay" @click="isReviewModalOpen = false">
+    <div v-if="isReviewModalOpen" class="modal-overlay" @click.self="isReviewModalOpen = false">
       <div class="modal-card review-modal" @click.stopPropagation>
         <header class="modal-header">
           <h3>💬 Оставить отзыв о специалисте</h3>
@@ -589,7 +589,7 @@ function handleAddToCart() {
     </div>
 
     <!-- PORTFOLIO LIGHTBOX MODAL -->
-    <div v-if="selectedCaseForLightbox" class="modal-overlay" @click="selectedCaseForLightbox = null">
+    <div v-if="selectedCaseForLightbox" class="modal-overlay" @click.self="selectedCaseForLightbox = null">
       <div class="modal-card lightbox-modal-card" @click.stopPropagation>
         <header class="modal-header">
           <h3>🎨 {{ selectedCaseForLightbox.title }}</h3>
