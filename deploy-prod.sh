@@ -1,6 +1,9 @@
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status
+# ==============================================================================
+# FYXI.RU — СВЕРХБЫСТРЫЙ И НАДЕЖНЫЙ ПРОД-ДЕПЛОЙ (v4.0 Ultra)
+# ==============================================================================
+
 set -e
 
 START_TIME=$(date +%s)
@@ -16,7 +19,7 @@ export NPM_CONFIG_FUND=false
 export NUXT_TELEMETRY_DISABLED=1
 
 echo -e "${CYAN}====================================================${NC}"
-echo -e "${CYAN}   fyxi.ru — Сверхбыстрый Прод-Деплой (v3.0 Fast)    ${NC}"
+echo -e "${CYAN}   fyxi.ru — Сверхбыстрый Прод-Деплой (v4.0 Ultra)   ${NC}"
 echo -e "${CYAN}====================================================${NC}"
 
 get_file_hash() {
@@ -53,7 +56,19 @@ fi
 cp .env backend/.env
 cp .env frontend/.env
 
-# 3. Process backend dependencies, prisma and build
+# 3. Auto-start PostgreSQL service if stopped
+echo -e "\n${CYAN}🗄️ Проверка службы базы данных PostgreSQL...${NC}"
+if command -v systemctl &> /dev/null; then
+  if ! systemctl is-active --quiet postgresql 2>/dev/null; then
+    echo -e "${YELLOW}⚙️ Попытка запуска службы PostgreSQL (systemctl)...${NC}"
+    sudo systemctl start postgresql 2>/dev/null || systemctl start postgresql 2>/dev/null || true
+  fi
+fi
+if command -v docker &> /dev/null && [ -f docker-compose.yml ]; then
+  docker compose up -d postgres 2>/dev/null || true
+fi
+
+# 4. Process backend dependencies, prisma and build
 echo -e "\n${CYAN}📦 1. Проверка бэкенда...${NC}"
 BACKEND_LOCK_HASH=$(get_file_hash "backend/package-lock.json")
 BACKEND_HASH_FILE="backend/node_modules/.installed_hash"
@@ -68,12 +83,14 @@ else
 fi
 
 (cd backend && npx prisma generate)
-(cd backend && npx prisma db push || echo -e "${YELLOW}⚠️ Пропуск db push.${NC}")
+if ! (cd backend && npx prisma db push); then
+  echo -e "${RED}⚠️ ВНИМАНИЕ: Не удалось выполнить db push в PostgreSQL! Проверьте DATABASE_URL в .env${NC}"
+fi
 
 echo -e "\n${CYAN}🔨 Сборка бэкенда (tsc)...${NC}"
 (cd backend && npm run build)
 
-# 4. Process frontend dependencies and production build
+# 5. Process frontend dependencies, cache cleanup and production build
 echo -e "\n${CYAN}📦 2. Проверка Nuxt 3 фронтенда...${NC}"
 FRONTEND_LOCK_HASH=$(get_file_hash "frontend/package-lock.json")
 FRONTEND_HASH_FILE="frontend/node_modules/.installed_hash"
@@ -87,14 +104,29 @@ else
   echo "$FRONTEND_LOCK_HASH" > "$FRONTEND_HASH_FILE"
 fi
 
+echo -e "${CYAN}🧹 Очистка устаревшего кэша Nitro SWR перед сборкой...${NC}"
+rm -rf frontend/.output frontend/.nuxt frontend/.data frontend/node_modules/.cache 2>/dev/null || true
+
 echo -e "\n${CYAN}🏗️ Production-сборка Nuxt 3...${NC}"
 (cd frontend && npm run build)
 
-# 5. Start apps in PM2
+# 6. Start apps in PM2 and diagnose
 echo -e "\n${CYAN}🚀 3. Перезапуск процессов в PM2...${NC}"
 mkdir -p .pm2
 export PM2_HOME="$(pwd)/.pm2"
 pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+
+echo -e "${CYAN}🩺 Диагностика запуска процессов PM2...${NC}"
+sleep 2
+
+STATUS_OUTPUT=$(pm2 jlist 2>/dev/null || echo "")
+if echo "$STATUS_OUTPUT" | grep -q '"status":"errored"' || echo "$STATUS_OUTPUT" | grep -q '"status":"stopped"'; then
+  echo -e "${RED}❌ ОБНАРУЖЕНА ОШИБКА ПРИ СТАРТЕ ПРОЦЕССОВ В PM2!${NC}"
+  echo -e "${YELLOW}📋 Вывод последних логов ошибки:${NC}"
+  pm2 logs --lines 15 --raw | tail -n 25
+else
+  echo -e "${GREEN}✅ Все процессы PM2 успешно работают в штатном режиме!${NC}"
+fi
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))
