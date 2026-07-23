@@ -73,9 +73,10 @@ export default defineNuxtConfig({
         { property: 'og:site_name', content: 'fyxi' },
         { property: 'og:type', content: 'website' },
         { property: 'og:locale', content: 'ru_RU' },
+        { property: 'og:url', content: 'https://fyxi.ru' },
         { property: 'og:title', content: 'fyxi — Премиальный маркетплейс дизайнеров и разработчиков Tilda' },
         { property: 'og:description', content: 'Каталог топовых веб-дизайнеров и разработчиков Zero Block. Покупайте прямые контакты специалистов без комиссий и переплат на fyxi.ru.' },
-        { property: 'og:image', content: '/og-image.jpg' },
+        { property: 'og:image', content: 'https://fyxi.ru/og-image.jpg' },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { name: 'theme-color', content: '#030303' }
