@@ -47,6 +47,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'fyxi.ru — маркетплейс проверенных веб-дизайнеров и разработчиков Zero Block. Покупайте прямые контакты специалистов без комиссий.' },
         { name: 'format-detection', content: 'telephone=no' },
+        { name: 'yandex-verification', content: 'c9a6a60917a6f97e' },
         
         // OpenGraph SEO Meta Tags
         { property: 'og:site_name', content: 'fyxi' },
