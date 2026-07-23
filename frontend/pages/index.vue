@@ -20,6 +20,7 @@ const searchQuery = ref('');
 const filterVerifiedOnly = ref(false);
 const filterAvailability = ref('all');
 const selectedSkill = ref('');
+const sortBy = ref('verified');
 
 const popularSkills = [
   { name: 'Zero Block', emoji: '📐' },
@@ -40,7 +41,18 @@ function toggleSkillFilter(skillName: string) {
   }
 }
 
-// Fetch profiles on mount
+// SSR Pre-fetch profiles with SWR caching
+const { data: initialProfiles } = await useAsyncData('catalog-profiles', () => {
+  const config = useRuntimeConfig();
+  return $fetch<any[]>(`${config.public.apiUrl}/profiles`);
+}, { default: () => [] });
+
+if (initialProfiles.value && initialProfiles.value.length > 0) {
+  profiles.value = initialProfiles.value;
+  loading.value = false;
+}
+
+// Fetch profiles on mount and filter changes
 async function loadProfiles() {
   const config = useRuntimeConfig();
   loading.value = true;
@@ -65,19 +77,23 @@ async function loadProfiles() {
 
     profiles.value = await $fetch<any[]>(url);
   } catch (err) {
-    errorMsg.value = 'Не удалось загрузить каталог специалистов. Пожалуйста, попробуйте позже.';
+    if (profiles.value.length === 0) {
+      errorMsg.value = 'Не удалось загрузить каталог специалистов. Пожалуйста, попробуйте позже.';
+    }
   } finally {
     loading.value = false;
   }
 }
 
-// Watch filters to reload profiles (dynamic SSR-querying)
+// Watch filters to reload profiles
 watch([selectedSpecialization, filterVerifiedOnly, filterAvailability], () => {
   loadProfiles();
 });
 
 onMounted(() => {
-  loadProfiles();
+  if (profiles.value.length === 0) {
+    loadProfiles();
+  }
 });
 
 // Client-side text & skill filtering + sorting
