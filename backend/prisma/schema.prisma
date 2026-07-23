@@ -37,6 +37,7 @@ model DevProfile {
   user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName       String
   lastName        String
+  avatarUrl       String?      // Optional avatar / profile photo URL
   title           String       // e.g., "Senior UX/UI Designer"
   specialization  SpecType     @default(DEVELOPER)
   bio             String

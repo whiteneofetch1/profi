@@ -256,9 +256,10 @@ function handleAddToCart() {
               </span>
             </div>
 
-            <!-- Header name & avatar mock -->
+            <!-- Header name & avatar -->
             <div class="avatar-holder">
-              <span class="initials">{{ profile.firstName[0] }}{{ profile.lastName[0] }}</span>
+              <img v-if="profile.avatarUrl" :src="profile.avatarUrl" :alt="profile.firstName" class="profile-avatar-img" />
+              <span v-else class="initials">{{ profile.firstName[0] }}{{ profile.lastName[0] }}</span>
               <span v-if="profile.isVerified" class="verified-seal" title="Верифицированный профиль">✓ Verified</span>
             </div>
 
@@ -625,6 +626,13 @@ function handleAddToCart() {
   margin: 0 auto 1.5rem;
   position: relative;
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .initials {

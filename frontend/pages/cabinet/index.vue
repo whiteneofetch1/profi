@@ -19,6 +19,7 @@ const isAuthSubmitting = ref(false);
 // Developer Profile form states
 const firstName = ref('');
 const lastName = ref('');
+const avatarUrl = ref('');
 const title = ref('');
 const specialization = ref<'DEVELOPER' | 'DESIGNER' | 'FULLSTACK' | 'OTHER'>('DEVELOPER');
 const bio = ref('');
@@ -66,6 +67,7 @@ function populateForm() {
     const p = auth.user.devProfile;
     firstName.value = p.firstName || '';
     lastName.value = p.lastName || '';
+    avatarUrl.value = p.avatarUrl || '';
     title.value = p.title || '';
     specialization.value = p.specialization || 'DEVELOPER';
     bio.value = p.bio || '';
@@ -146,6 +148,7 @@ async function handleSaveProfile() {
   const payload = {
     firstName: firstName.value,
     lastName: lastName.value,
+    avatarUrl: avatarUrl.value ? avatarUrl.value.trim() : undefined,
     title: title.value,
     specialization: specialization.value,
     bio: bio.value,
@@ -297,6 +300,21 @@ async function handleSaveProfile() {
           </div>
 
           <form @submit.prevent="handleSaveProfile">
+            <!-- AVATAR & BASIC DETAILS -->
+            <div class="avatar-form-section">
+              <div class="avatar-preview">
+                <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar preview" class="avatar-img" @error="avatarUrl = ''" />
+                <div v-else class="avatar-placeholder">
+                  {{ (firstName[0] || '') + (lastName[0] || '') || '🖼️' }}
+                </div>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>Ссылка на Ваше фото / Аватар (URL)</label>
+                <input v-model="avatarUrl" type="url" class="form-input" placeholder="https://example.com/my-photo.jpg" />
+                <span class="form-hint">Укажите прямую ссылку на фото (JPG, PNG или Unsplash/GitHub)</span>
+              </div>
+            </div>
+
             <div class="form-row">
               <div class="form-group">
                 <label>Имя</label>
@@ -679,5 +697,50 @@ async function handleSaveProfile() {
   color: #38bdf8;
   font-size: 0.85rem;
   text-decoration: underline;
+}
+
+/* --- AVATAR FORM SECTION --- */
+.avatar-form-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1.2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-glow);
+}
+
+.avatar-preview {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--accent-purple);
+  background: #1e1b4b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #c084fc;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  display: block;
 }
 </style>
