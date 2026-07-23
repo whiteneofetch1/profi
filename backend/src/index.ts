@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import dotenv from 'dotenv';
 
 import rateLimit from '@fastify/rate-limit';
+import bcrypt from 'bcryptjs';
 
 // Plugins
 import dbPlugin from './plugins/db';
@@ -122,7 +123,6 @@ async function bootstrap() {
 
     // 5. Auto-seed Default Admin Account
     try {
-      const bcrypt = await import('bcrypt');
       const adminEmail = 'admin@fyxi.ru';
       const existingAdmin = await fastify.prisma.user.findUnique({ where: { email: adminEmail } });
       if (!existingAdmin) {
@@ -138,7 +138,7 @@ async function bootstrap() {
         console.log(`🛡 Default Admin Account auto-created: ${adminEmail} / admin123456`);
       }
     } catch (seedErr) {
-      fastify.log.error('Failed to seed default admin:', seedErr);
+      fastify.log.error(seedErr, 'Failed to seed default admin');
     }
 
     // 6. Start Listening
