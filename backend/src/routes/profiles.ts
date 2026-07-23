@@ -588,14 +588,25 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       });
     }
   );
+  // --- HELPER TO RESOLVE DEV PROFILE ID ---
+  async function resolveDevProfileId(user: any): Promise<string | null> {
+    if (user.devProfileId) return user.devProfileId;
+    const profile = await fastify.prisma.devProfile.findUnique({
+      where: { userId: user.id },
+      select: { id: true }
+    });
+    return profile ? profile.id : null;
+  }
+
   // --- PORTFOLIO CASES ---
   fastify.get('/my-cases', { preValidation: [fastify.authenticate] }, async (request, reply) => {
     const user = (request as any).user;
-    if (user.role !== 'DEVELOPER' || !user.devProfileId) {
+    const devProfileId = await resolveDevProfileId(user);
+    if (user.role !== 'DEVELOPER' || !devProfileId) {
       return reply.status(403).send({ error: 'Только специалисты имеют портфолио' });
     }
     const cases = await fastify.prisma.portfolioCase.findMany({
-      where: { devProfileId: user.devProfileId },
+      where: { devProfileId },
       orderBy: { order: 'asc' }
     });
     reply.send(cases);
@@ -603,13 +614,14 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
   fastify.post('/my-cases', { preValidation: [fastify.authenticate] }, async (request: FastifyRequest<{ Body: any }>, reply) => {
     const user = (request as any).user;
-    if (user.role !== 'DEVELOPER' || !user.devProfileId) {
+    const devProfileId = await resolveDevProfileId(user);
+    if (user.role !== 'DEVELOPER' || !devProfileId) {
       return reply.status(403).send({ error: 'Доступ запрещен' });
     }
     const { title, description, coverUrl, techStack, link, order } = request.body as any;
     const newCase = await fastify.prisma.portfolioCase.create({
       data: {
-        devProfileId: user.devProfileId,
+        devProfileId,
         title,
         description,
         coverUrl,
@@ -623,11 +635,12 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
   fastify.put('/my-cases/:id', { preValidation: [fastify.authenticate] }, async (request: FastifyRequest<{ Params: { id: string }, Body: any }>, reply) => {
     const user = (request as any).user;
+    const devProfileId = await resolveDevProfileId(user);
     const { id } = request.params;
     const { title, description, coverUrl, techStack, link, order } = request.body as any;
     // Check ownership
     const existing = await fastify.prisma.portfolioCase.findUnique({ where: { id } });
-    if (!existing || existing.devProfileId !== user.devProfileId) {
+    if (!existing || existing.devProfileId !== devProfileId) {
       return reply.status(404).send({ error: 'Кейс не найден' });
     }
     const updated = await fastify.prisma.portfolioCase.update({
@@ -639,9 +652,10 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
   fastify.delete('/my-cases/:id', { preValidation: [fastify.authenticate] }, async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
     const user = (request as any).user;
+    const devProfileId = await resolveDevProfileId(user);
     const { id } = request.params;
     const existing = await fastify.prisma.portfolioCase.findUnique({ where: { id } });
-    if (!existing || existing.devProfileId !== user.devProfileId) {
+    if (!existing || existing.devProfileId !== devProfileId) {
       return reply.status(404).send({ error: 'Кейс не найден' });
     }
     await fastify.prisma.portfolioCase.delete({ where: { id } });
