@@ -370,6 +370,11 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   // 11. CLEAR RESOLVED OR ALL ERROR LOGS
   fastify.delete('/errors/clear', async (request, reply) => {
     try {
+      const { all } = request.query as any;
+      if (all === 'true' || all === true) {
+        await fastify.prisma.errorLog.deleteMany({});
+        return reply.send({ success: true, message: 'Весь журнал ошибок полностью очищен.' });
+      }
       await fastify.prisma.errorLog.deleteMany({
         where: { resolved: true },
       });

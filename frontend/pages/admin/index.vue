@@ -96,6 +96,20 @@ async function clearResolvedErrors() {
   }
 }
 
+async function clearAllErrors() {
+  if (!confirm('ВНИМАНИЕ! Вы уверены, что хотите безвозвратно удалить ВСЕ (и активные, и исправленные) ошибки из журнала?')) return;
+  const config = useRuntimeConfig();
+  try {
+    await $fetch(`${config.public.apiUrl}/admin/errors/clear?all=true`, {
+      method: 'DELETE',
+    });
+    showToast('Весь журнал ошибок полностью очищен!', 'success');
+    await loadErrorLogs();
+  } catch (err) {
+    showToast('Не удалось очистить журнал ошибок', 'info');
+  }
+}
+
 async function copyErrorReportForAI() {
   const activeErrors = errorLogs.value.filter(l => !l.resolved);
   if (activeErrors.length === 0) {
@@ -815,12 +829,15 @@ function formatDate(dateStr: string) {
               <p>Автоматическая фиксация серверных исключений (Fastify 500) и клиентских JS ошибок (Vue/Nuxt).</p>
             </div>
 
-            <div class="cms-actions" style="display: flex; gap: 0.5rem;">
+            <div class="cms-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
               <button class="add-post-btn" @click="copyErrorReportForAI">
                 📋 Скопировать отчёт для ИИ
               </button>
               <button class="btn-clear-errors" @click="clearResolvedErrors">
                 🧹 Очистить исправленные
+              </button>
+              <button class="action-delete-btn" @click="clearAllErrors">
+                🔥 Удалить ВСЕ ошибки
               </button>
             </div>
           </section>
