@@ -16,6 +16,8 @@ import checkoutRoutes from './routes/checkout';
 import adminRoutes from './routes/admin';
 import blogRoutes from './routes/blog';
 
+import { sendTelegramErrorAlert } from './services/notifications';
+
 // Initialize env vars
 dotenv.config();
 
@@ -74,18 +76,23 @@ async function bootstrap() {
     fastify.setErrorHandler(async (error, request, reply) => {
       fastify.log.error(error);
 
+      const errorSource = 'BACKEND_API';
+      const statusCode = error.statusCode || 500;
+      const errorMsg = error.message || 'Internal Server Error';
+      const userEmail = (request as any).user?.email || null;
+
       try {
         if (fastify.prisma) {
           await fastify.prisma.errorLog.create({
             data: {
-              source: 'BACKEND_API',
-              level: error.statusCode && error.statusCode < 500 ? 'WARN' : 'ERROR',
-              message: error.message || 'Internal Server Error',
+              source: errorSource,
+              level: statusCode < 500 ? 'WARN' : 'ERROR',
+              message: errorMsg,
               stack: error.stack || null,
               path: request.raw.url || request.url,
               method: request.method,
-              statusCode: error.statusCode || 500,
-              userEmail: (request as any).user?.email || null,
+              statusCode: statusCode,
+              userEmail: userEmail,
               ipAddress: request.ip,
               userAgent: request.headers['user-agent'],
             },
@@ -95,7 +102,19 @@ async function bootstrap() {
         fastify.log.error(logErr);
       }
 
-      const statusCode = error.statusCode || 500;
+      // Automatically dispatch error notification to Telegram Admin
+      if (statusCode >= 500) {
+        sendTelegramErrorAlert({
+          source: errorSource,
+          message: errorMsg,
+          statusCode: statusCode,
+          path: request.raw.url || request.url,
+          method: request.method,
+          userEmail: userEmail,
+          stack: error.stack
+        }).catch(err => fastify.log.error(err));
+      }
+
       reply.status(statusCode).send({
         error: statusCode === 500 ? 'Внутренняя ошибка сервера (зафиксировано в журнале ошибок)' : error.message,
       });

@@ -52,6 +52,31 @@ export async function sendTelegramMessage(text: string, chatId?: string): Promis
 }
 
 /**
+ * Send System Error Alert to Telegram Admin Chat
+ */
+export async function sendTelegramErrorAlert(errorDetails: {
+  source: string;
+  message: string;
+  statusCode?: number;
+  path?: string;
+  method?: string;
+  userEmail?: string;
+  stack?: string;
+}): Promise<boolean> {
+  const timeStr = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+  const text = `⚠️ <b>ОШИБКА НА ПЛАТФОРМЕ FYXI.RU</b>\n\n` +
+    `📍 <b>Источник:</b> ${errorDetails.source}\n` +
+    `🔗 <b>Маршрут:</b> ${errorDetails.method || 'GET'} ${errorDetails.path || '/'}\n` +
+    `🔢 <b>Код статуса:</b> ${errorDetails.statusCode || 500}\n` +
+    `👤 <b>Пользователь:</b> ${errorDetails.userEmail || 'Гость'}\n` +
+    `⏱️ <b>Время:</b> ${timeStr}\n\n` +
+    `💬 <b>Сообщение:</b> <code>${errorDetails.message}</code>` +
+    (errorDetails.stack ? `\n\n📜 <b>Стек ошибки:</b>\n<code>${errorDetails.stack.slice(0, 250)}...</code>` : '');
+
+  return sendTelegramMessage(text);
+}
+
+/**
  * Send Transactional Email via Gmail SMTP safely (non-blocking)
  */
 export async function sendEmailNotification(to: string, subject: string, htmlContent: string): Promise<boolean> {
