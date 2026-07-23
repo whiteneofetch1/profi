@@ -285,3 +285,14 @@ h1, h2, h3, h4, .font-title {
     padding: 1rem !important;
   }
 }
+
+/* --- GLOBAL DARK SELECT & OPTION DROPDOWN STYLING --- */
+select, option {
+  font-family: inherit;
+}
+
+select option {
+  background-color: #0d0c18 !important;
+  color: #f8fafc !important;
+  padding: 10px 14px;
+}

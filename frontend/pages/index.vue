@@ -649,13 +649,36 @@ p {
 }
 
 .filter-select {
-  background: rgba(255, 255, 255, 0.04);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: rgba(18, 18, 26, 0.85);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2306b6d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
   border: 1px solid var(--border-glow);
   color: var(--text-primary);
-  padding: 0.6rem 1rem;
+  padding: 0.7rem 2.8rem 0.7rem 1.2rem;
   border-radius: 12px;
   font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+.filter-select:hover, .filter-select:focus {
+  border-color: rgba(6, 182, 212, 0.5);
+  background-color: rgba(18, 18, 26, 0.95);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.2);
+  outline: none;
+}
+
+.filter-select option {
+  background-color: #0d0c18 !important;
+  color: #f8fafc !important;
+  padding: 10px 14px;
 }
 
 .verified-checkbox-label {
