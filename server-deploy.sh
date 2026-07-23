@@ -96,10 +96,11 @@ echo -e "${CYAN}🏗️ Production-сборка Nuxt 3 (SSR + Nitro)...${NC}"
 
 # 6. Перезапуск и проверка здоровья PM2
 echo -e "\n${CYAN}🚀 3. Перезапуск процессов в PM2...${NC}"
-echo -e "${CYAN}🧹 Освобождение портов 5010 и 5011 от возможные зависших процессов...${NC}"
+echo -e "${CYAN}🧹 Освобождение портов 5010 и 5011 и сброс дубликатов PM2...${NC}"
 fuser -k 5010/tcp 5011/tcp 2>/dev/null || true
+pm2 delete all 2>/dev/null || true
 
-pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+pm2 start ecosystem.config.js
 pm2 save
 
 echo -e "${CYAN}🩺 Диагностика запуска процессов PM2...${NC}"
