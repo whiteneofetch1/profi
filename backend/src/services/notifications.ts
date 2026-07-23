@@ -79,21 +79,25 @@ export async function sendTelegramErrorAlert(errorDetails: {
 /**
  * Send Transactional Email via Gmail SMTP safely (non-blocking)
  */
-export async function sendEmailNotification(to: string, subject: string, htmlContent: string): Promise<boolean> {
+export async function sendEmailNotification(to: string, subject: string, htmlContent: string, plainTextContent?: string): Promise<boolean> {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.log(`ℹ️ Gmail SMTP notification skipped (GMAIL_USER / GMAIL_APP_PASSWORD not set). To: ${to}, Subject: ${subject}`);
     return false;
   }
 
   try {
+    // Generate plain text fallback by stripping HTML tags if plainTextContent is omitted
+    const text = plainTextContent || htmlContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
     const info = await transporter.sendMail({
       from: `"fyxi.ru Маркетплейс" <${process.env.GMAIL_USER}>`,
       to,
       subject,
+      text,
       html: htmlContent,
     });
 
-    console.log('✅ Email notification sent successfully:', info.messageId);
+    console.log('✅ Email notification sent successfully to', to, ':', info.messageId);
     return true;
   } catch (err: any) {
     console.error('❌ Failed to send Email notification:', err?.message || err);

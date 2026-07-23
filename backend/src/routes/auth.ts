@@ -59,9 +59,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
           <p>Здравствуйте! Вы зарегистрировались на платформе fyxi.ru с email <strong>${email}</strong>.</p>
           <p>Пожалуйста, подтвердите вашу почту, перейдя по ссылке ниже:</p>
           <p style="margin: 1.5rem 0;">
-            <a href="${verifyUrl}" style="background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%); color: #ffffff; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 8px; font-weight: 600;">Подтвердить Email</a>
+            <a href="${verifyUrl}" style="background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%); color: #ffffff; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Подтвердить Email</a>
           </p>
-          <p style="font-size: 0.8rem; color: #94a3b8;">Если вы не регистрировались на сайте, просто проигнорируйте это письмо.</p>
+          <p style="font-size: 0.85rem; color: #cbd5e1;">Если кнопка не работает, скопируйте эту ссылку в браузер:<br/><a href="${verifyUrl}" style="color: #06b6d4;">${verifyUrl}</a></p>
+          <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 1.5rem;">Если вы не регистрировались на сайте, просто проигнорируйте это письмо.</p>
         </div>
       `;
 
