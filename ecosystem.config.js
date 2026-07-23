@@ -6,6 +6,8 @@ module.exports = {
       cwd: "./backend",
       instances: 1,
       exec_mode: "fork",
+      exp_backoff_restart: 1000,
+      max_restarts: 15,
       env: {
         NODE_ENV: "production",
         PORT: 5010,
@@ -18,6 +20,8 @@ module.exports = {
       cwd: "./frontend",
       instances: 1,
       exec_mode: "fork",
+      exp_backoff_restart: 1000,
+      max_restarts: 15,
       env: {
         NODE_ENV: "production",
         PORT: 5011,
