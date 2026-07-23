@@ -1,0 +1,115 @@
+export interface CityInfo {
+  slug: string;
+  name: string;        // e.g. "Москва"
+  nameInCase: string;  // e.g. "Москве" (в Москве)
+  country: string;     // e.g. "Россия"
+  region?: string;
+}
+
+export const CITIES_LIST: CityInfo[] = [
+  // Россия — Миллионники и крупные центры
+  { slug: 'moscow', name: 'Москва', nameInCase: 'Москве', country: 'Россия' },
+  { slug: 'spb', name: 'Санкт-Петербург', nameInCase: 'Санкт-Петербурге', country: 'Россия' },
+  { slug: 'novosibirsk', name: 'Новосибирск', nameInCase: 'Новосибирске', country: 'Россия' },
+  { slug: 'ekaterinburg', name: 'Екатеринбург', nameInCase: 'Екатеринбурге', country: 'Россия' },
+  { slug: 'kazan', name: 'Казань', nameInCase: 'Казани', country: 'Россия' },
+  { slug: 'nizhny-novgorod', name: 'Нижний Новгород', nameInCase: 'Нижнем Новгороде', country: 'Россия' },
+  { slug: 'chelyabinsk', name: 'Челябинск', nameInCase: 'Челябинске', country: 'Россия' },
+  { slug: 'krasnoyarsk', name: 'Красноярск', nameInCase: 'Красноярске', country: 'Россия' },
+  { slug: 'samara', name: 'Самара', nameInCase: 'Самаре', country: 'Россия' },
+  { slug: 'ufa', name: 'Уфа', nameInCase: 'Уфе', country: 'Россия' },
+  { slug: 'rostov-on-don', name: 'Ростов-на-Дону', nameInCase: 'Ростове-на-Дону', country: 'Россия' },
+  { slug: 'omsk', name: 'Омск', nameInCase: 'Омске', country: 'Россия' },
+  { slug: 'krasnodar', name: 'Краснодар', nameInCase: 'Краснодаре', country: 'Россия' },
+  { slug: 'voronezh', name: 'Воронеж', nameInCase: 'Воронеже', country: 'Россия' },
+  { slug: 'perm', name: 'Пермь', nameInCase: 'Перми', country: 'Россия' },
+  { slug: 'volgograd', name: 'Волгоград', nameInCase: 'Волгограде', country: 'Россия' },
+  { slug: 'saratov', name: 'Саратов', nameInCase: 'Саратове', country: 'Россия' },
+  { slug: 'tyumen', name: 'Тюмень', nameInCase: 'Тюмени', country: 'Россия' },
+  { slug: 'tolyatti', name: 'Тольятти', nameInCase: 'Тольятти', country: 'Россия' },
+  { slug: 'barnaul', name: 'Барнаул', nameInCase: 'Барнауле', country: 'Россия' },
+  { slug: 'izhevsk', name: 'Ижевск', nameInCase: 'Ижевске', country: 'Россия' },
+  { slug: 'khabarovsk', name: 'Хабаровск', nameInCase: 'Хабаровске', country: 'Россия' },
+  { slug: 'ulyanovsk', name: 'Ульяновск', nameInCase: 'Ульяновске', country: 'Россия' },
+  { slug: 'irkutsk', name: 'Иркутск', nameInCase: 'Иркутске', country: 'Россия' },
+  { slug: 'vladivostok', name: 'Владивосток', nameInCase: 'Владивостоке', country: 'Россия' },
+  { slug: 'yaroslavl', name: 'Ярославль', nameInCase: 'Ярославле', country: 'Россия' },
+  { slug: 'sevastopol', name: 'Севастополь', nameInCase: 'Севастополе', country: 'Россия' },
+  { slug: 'stavropol', name: 'Ставрополь', nameInCase: 'Ставрополе', country: 'Россия' },
+  { slug: 'naberezhnye-chelny', name: 'Набережные Челны', nameInCase: 'Набережных Челнах', country: 'Россия' },
+  { slug: 'balashikha', name: 'Балашиха', nameInCase: 'Балашихе', country: 'Россия' },
+  { slug: 'sochi', name: 'Сочи', nameInCase: 'Сочи', country: 'Россия' },
+  { slug: 'smolensk', name: 'Смоленск', nameInCase: 'Смоленске', country: 'Россия' },
+  { slug: 'kaluga', name: 'Калуга', nameInCase: 'Калуге', country: 'Россия' },
+  { slug: 'cherepovets', name: 'Череповец', nameInCase: 'Череповце', country: 'Россия' },
+  { slug: 'orel', name: 'Орёл', nameInCase: 'Орле', country: 'Россия' },
+  { slug: 'saransk', name: 'Саранск', nameInCase: 'Саранске', country: 'Россия' },
+  { slug: 'kurgan', name: 'Курган', nameInCase: 'Кургане', country: 'Россия' },
+  { slug: 'vologda', name: 'Вологда', nameInCase: 'Вологде', country: 'Россия' },
+  { slug: 'podolsk', name: 'Подольск', nameInCase: 'Подольске', country: 'Россия' },
+  { slug: 'vladikavkaz', name: 'Владикавказ', nameInCase: 'Владикавказе', country: 'Россия' },
+  { slug: 'murmansk', name: 'Мурманск', nameInCase: 'Мурманске', country: 'Россия' },
+  { slug: 'tambov', name: 'Тамбов', nameInCase: 'Тамбове', country: 'Россия' },
+  { slug: 'grozny', name: 'Грозный', nameInCase: 'Грозном', country: 'Россия' },
+  { slug: 'kostroma', name: 'Кострома', nameInCase: 'Костроме', country: 'Россия' },
+  { slug: 'sterlitamak', name: 'Стерлитамак', nameInCase: 'Стерлитамаке', country: 'Россия' },
+  { slug: 'petrozavodsk', name: 'Петрозаводск', nameInCase: 'Петрозаводске', country: 'Россия' },
+  { slug: 'nizhnevartovsk', name: 'Нижневартовск', nameInCase: 'Нижневартовске', country: 'Россия' },
+  { slug: 'nizhny-tagil', name: 'Нижний Тагил', nameInCase: 'Нижнем Тагиле', country: 'Россия' },
+  { slug: 'yoskar-ola', name: 'Йошкар-Ола', nameInCase: 'Йошкар-Оле', country: 'Россия' },
+  { slug: 'novorossiysk', name: 'Новороссийск', nameInCase: 'Новороссийске', country: 'Россия' },
+  { slug: 'komsomolsk-on-amur', name: 'Комсомольск-на-Амуре', nameInCase: 'Комсомольске-на-Амуре', country: 'Россия' },
+  { slug: 'taganrog', name: 'Таганрог', nameInCase: 'Таганроге', country: 'Россия' },
+  { slug: 'syktyvkar', name: 'Сыктывкар', nameInCase: 'Сыктывкаре', country: 'Россия' },
+  { slug: 'nalchik', name: 'Нальчик', nameInCase: 'Нальчике', country: 'Россия' },
+  { slug: 'shakhty', name: 'Шахты', nameInCase: 'Шахтах', country: 'Россия' },
+  { slug: 'dzerzhinsk', name: 'Дзержинск', nameInCase: 'Дзержинске', country: 'Россия' },
+  { slug: 'orsk', name: 'Орск', nameInCase: 'Орске', country: 'Россия' },
+  { slug: 'bratsk', name: 'Братск', nameInCase: 'Братске', country: 'Россия' },
+  { slug: 'blagoveschensk', name: 'Благовещенск', nameInCase: 'Благовещенске', country: 'Россия' },
+  { slug: 'engels', name: 'Энгельс', nameInCase: 'Энгельсе', country: 'Россия' },
+  { slug: 'veliky-novgorod', name: 'Великий Новгород', nameInCase: 'Великом Новгороде', country: 'Россия' },
+  { slug: 'stary-oskol', name: 'Старый Оскол', nameInCase: 'Старом Осколе', country: 'Россия' },
+  { slug: 'korolev', name: 'Королёв', nameInCase: 'Королёве', country: 'Россия' },
+  { slug: 'pskov', name: 'Псков', nameInCase: 'Пскове', country: 'Россия' },
+  { slug: 'mytishchi', name: 'Мытищи', nameInCase: 'Мытищах', country: 'Россия' },
+  { slug: 'biysk', name: 'Бийск', nameInCase: 'Бийске', country: 'Россия' },
+  { slug: 'prokopyevsk', name: 'Прокопьевск', nameInCase: 'Прокопьевске', country: 'Россия' },
+  { slug: 'yuzhno-sakhalinsk', name: 'Южно-Сахалинск', nameInCase: 'Южно-Сахалинске', country: 'Россия' },
+  { slug: 'rybinsk', name: 'Рыбинск', nameInCase: 'Рыбинске', country: 'Россия' },
+  { slug: 'armavir', name: 'Армавир', nameInCase: 'Армавире', country: 'Россия' },
+  { slug: 'lyubertsy', name: 'Люберцы', nameInCase: 'Люберцах', country: 'Россия' },
+
+  // Белоруссия
+  { slug: 'minsk', name: 'Минск', nameInCase: 'Минске', country: 'Беларусь' },
+  { slug: 'gomel', name: 'Гомель', nameInCase: 'Гомеле', country: 'Беларусь' },
+  { slug: 'mogilev', name: 'Могилёв', nameInCase: 'Могилёве', country: 'Беларусь' },
+  { slug: 'vitebsk', name: 'Витебск', nameInCase: 'Витебске', country: 'Беларусь' },
+  { slug: 'grodno', name: 'Гродно', nameInCase: 'Гродно', country: 'Беларусь' },
+  { slug: 'brest', name: 'Брест', nameInCase: 'Бресте', country: 'Беларусь' },
+  { slug: 'bobruisk', name: 'Бобруйск', nameInCase: 'Бобруйске', country: 'Беларусь' },
+
+  // Казахстан
+  { slug: 'almaty', name: 'Алматы', nameInCase: 'Алматы', country: 'Казахстан' },
+  { slug: 'astana', name: 'Астана', nameInCase: 'Астане', country: 'Казахстан' },
+  { slug: 'shymkent', name: 'Шымкент', nameInCase: 'Шымкенте', country: 'Казахстан' },
+  { slug: 'karaganda', name: 'Караганда', nameInCase: 'Караганде', country: 'Казахстан' },
+  { slug: 'aktobe', name: 'Актобе', nameInCase: 'Актобе', country: 'Казахстан' },
+  { slug: 'taraz', name: 'Тараз', nameInCase: 'Таразе', country: 'Казахстан' },
+  { slug: 'pavlodar', name: 'Павлодар', nameInCase: 'Павлодаре', country: 'Казахстан' },
+  { slug: 'ust-kamenogorsk', name: 'Усть-Каменогорск', nameInCase: 'Усть-Каменогорске', country: 'Казахстан' },
+
+  // Узбекистан, Кыргызстан, Армения, Грузия, Азербайджан
+  { slug: 'tashkent', name: 'Ташкент', nameInCase: 'Ташкенте', country: 'Узбекистан' },
+  { slug: 'samarkand', name: 'Самарканд', nameInCase: 'Самарканде', country: 'Узбекистан' },
+  { slug: 'bishkek', name: 'Бишкек', nameInCase: 'Бишкеке', country: 'Кыргызстан' },
+  { slug: 'yerevan', name: 'Ереван', nameInCase: 'Ереване', country: 'Армения' },
+  { slug: 'tbilisi', name: 'Тбилиси', nameInCase: 'Тбилиси', country: 'Грузия' },
+  { slug: 'batumi', name: 'Батуми', nameInCase: 'Батуми', country: 'Грузия' },
+  { slug: 'baku', name: 'Баку', nameInCase: 'Баку', country: 'Азербайджан' },
+  { slug: 'chisinau', name: 'Кишинёв', nameInCase: 'Кишинёве', country: 'Молдова' }
+];
+
+export function getCityBySlug(slug: string): CityInfo | undefined {
+  return CITIES_LIST.find(c => c.slug === slug.toLowerCase());
+}

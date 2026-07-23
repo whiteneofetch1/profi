@@ -1,4 +1,5 @@
 import { defineEventHandler, setHeader } from 'h3';
+import { CITIES_LIST } from '~/utils/cities';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -75,6 +76,14 @@ export default defineEventHandler(async (event) => {
     <priority>0.7</priority>
   </url>`;
   }).join('\n')}
+
+  <!-- 100 CIS Geo-SEO City Landing Pages -->
+  ${CITIES_LIST.map(c => `<url>
+    <loc>${baseUrl}/city/${c.slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>`).join('\n')}
 
   <!-- Dynamic Freelancers & Designers Profiles -->
   ${profiles.map(p => {
