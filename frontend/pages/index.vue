@@ -288,6 +288,14 @@ useHead({
   })
 });
 
+function cleanName(name: string) {
+  return (name || '').replace(/\s*\d+/g, '').trim();
+}
+
+function cleanTitle(title: string) {
+  return (title || '').replace(/\s*\(v\d+\)/gi, '').trim();
+}
+
 function navigateToProfile(event: MouseEvent, profile: any) {
   const target = event.target as HTMLElement;
   if (
@@ -420,11 +428,11 @@ function navigateToProfile(event: MouseEvent, profile: any) {
               <div class="talent-meta">
                 <div class="name-badge-row">
                   <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="talent-name-link">
-                    <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
+                    <h2>{{ cleanName(profile.firstName) }} {{ cleanName(profile.lastName) }}</h2>
                   </NuxtLink>
                   <span v-if="profile.isVerified" class="verified-check-badge" title="Профиль проверен администратором">✓ Verified</span>
                 </div>
-                <span class="spec-badge">{{ profile.title }}</span>
+                <span class="spec-badge">{{ cleanTitle(profile.title) }}</span>
               </div>
             </div>
 
@@ -774,6 +782,7 @@ p {
 .avatar-frame {
   width: 64px;
   height: 64px;
+  flex-shrink: 0;
   border-radius: 18px;
   display: flex;
   align-items: center;
@@ -823,6 +832,7 @@ p {
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 
 .spec-badge {

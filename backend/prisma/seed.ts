@@ -219,9 +219,9 @@ async function main() {
       const monthly = 80000 + (index * 5000);
 
       return {
-        firstName: `${selectName.f} ${idx}`, // Add index to make names unique
+        firstName: selectName.f,
         lastName: selectName.l,
-        title: `${selectName.t} (v${idx})`,
+        title: selectName.t,
         bio: `${selectName.bio} Успешно реализовал более ${5 + index} проектов.`,
         experienceYears: experience,
         skills: selectName.skill.split(', '),

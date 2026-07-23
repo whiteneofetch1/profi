@@ -151,8 +151,16 @@ const filteredProfiles = computed(() => {
   return result;
 });
 
-function getAvatarSymbol(spec: string) {
-  switch (spec) {
+function cleanName(name: string) {
+  return (name || '').replace(/\s*\d+/g, '').trim();
+}
+
+function cleanTitle(title: string) {
+  return (title || '').replace(/\s*\(v\d+\)/gi, '').trim();
+}
+
+function getAvatarSymbol(specialization: string) {
+  switch (specialization) {
     case 'DESIGNER': return '🎨';
     case 'DEVELOPER': return '⚡️';
     case 'FULLSTACK': return '🛸';
@@ -258,11 +266,11 @@ function getAvailabilityLabel(status: string) {
               <div class="talent-meta">
                 <div class="name-badge-row">
                   <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="talent-name-link">
-                    <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
+                    <h2>{{ cleanName(profile.firstName) }} {{ cleanName(profile.lastName) }}</h2>
                   </NuxtLink>
                   <span v-if="profile.isVerified" class="verified-check-badge">✓ Verified</span>
                 </div>
-                <span class="spec-badge">{{ profile.title }}</span>
+                <span class="spec-badge">{{ cleanTitle(profile.title) }}</span>
               </div>
             </div>
 
