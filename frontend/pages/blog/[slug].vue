@@ -3,11 +3,19 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const slug = route.params.slug as string;
+let slug = route.params.slug as string;
+try {
+  while (slug && slug.includes('%')) {
+    const decoded = decodeURIComponent(slug);
+    if (decoded === slug) break;
+    slug = decoded;
+  }
+} catch (e) {}
+
 const config = useRuntimeConfig();
 
 // Fetch article dynamically from Fastify backend
-const { data: article } = await useFetch<any>(`${config.public.apiUrl}/blog/${slug}`);
+const { data: article } = await useFetch<any>(`${config.public.apiUrl}/blog/${encodeURIComponent(slug)}`);
 
 // If the article is not found or is scheduled in the future, Nuxt will return 404
 if (!article.value) {

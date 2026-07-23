@@ -96,6 +96,39 @@ async function clearResolvedErrors() {
   }
 }
 
+async function copyErrorReportForAI() {
+  const activeErrors = errorLogs.value.filter(l => !l.resolved);
+  if (activeErrors.length === 0) {
+    showToast('Активных ошибок не обнаружено!', 'info');
+    return;
+  }
+
+  let report = `=== ОТЧЁТ ОБ ОШИБКАХ FYXI.RU (${activeErrors.length} активных) ===\n\n`;
+  activeErrors.forEach((err, idx) => {
+    report += `[${idx + 1}] Уровень: ${err.level} | Источник: ${err.source}\n`;
+    report += `Сообщение: ${err.message}\n`;
+    report += `Путь: ${err.method ? err.method + ' ' : ''}${err.path || '—'}\n`;
+    report += `Дата: ${new Date(err.createdAt).toLocaleString()}\n`;
+    if (err.stack) {
+      report += `Stack Trace:\n${err.stack.slice(0, 400)}\n`;
+    }
+    report += `--------------------------------------------------\n`;
+  });
+
+  try {
+    await navigator.clipboard.writeText(report);
+    showToast('📋 Отчёт об ошибках скопирован в буфер обмена!', 'success');
+  } catch (e) {
+    const textarea = document.createElement('textarea');
+    textarea.value = report;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('📋 Отчёт об ошибках скопирован в буфер обмена!', 'success');
+  }
+}
+
 const filteredErrorLogs = computed(() => {
   let list = errorLogs.value;
 
@@ -782,7 +815,10 @@ function formatDate(dateStr: string) {
               <p>Автоматическая фиксация серверных исключений (Fastify 500) и клиентских JS ошибок (Vue/Nuxt).</p>
             </div>
 
-            <div class="cms-actions">
+            <div class="cms-actions" style="display: flex; gap: 0.5rem;">
+              <button class="add-post-btn" @click="copyErrorReportForAI">
+                📋 Скопировать отчёт для ИИ
+              </button>
               <button class="btn-clear-errors" @click="clearResolvedErrors">
                 🧹 Очистить исправленные
               </button>

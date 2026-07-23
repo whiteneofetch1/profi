@@ -91,23 +91,27 @@ const filteredProfiles = computed(() => {
 
   if (selectedSkill.value) {
     const skillLower = selectedSkill.value.toLowerCase();
-    result = result.filter(p => p.skills.some((s: string) => s.toLowerCase() === skillLower));
+    result = result.filter(p => 
+      Array.isArray(p?.skills) && 
+      p.skills.some((s: string) => typeof s === 'string' && s.toLowerCase() === skillLower)
+    );
   }
 
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
-    result = result.filter(p => 
-      p.firstName.toLowerCase().includes(q) ||
-      p.lastName.toLowerCase().includes(q) ||
-      p.title.toLowerCase().includes(q) ||
-      p.skills.some((s: string) => s.toLowerCase().includes(q))
-    );
+    result = result.filter(p => {
+      const fn = (p?.firstName || '').toLowerCase();
+      const ln = (p?.lastName || '').toLowerCase();
+      const t = (p?.title || '').toLowerCase();
+      const hasSkill = Array.isArray(p?.skills) && p.skills.some((s: string) => typeof s === 'string' && s.toLowerCase().includes(q));
+      return fn.includes(q) || ln.includes(q) || t.includes(q) || hasSkill;
+    });
   }
 
   // Price Range Filter
   if (filterPriceRange.value !== 'all') {
     result = result.filter(p => {
-      const rate = p.hourlyRate || 0;
+      const rate = p?.hourlyRate || 0;
       if (filterPriceRange.value === 'under_1500') return rate > 0 && rate <= 1500;
       if (filterPriceRange.value === '1500_3000') return rate > 1500 && rate <= 3000;
       if (filterPriceRange.value === 'over_3000') return rate > 3000;
@@ -116,18 +120,19 @@ const filteredProfiles = computed(() => {
   }
 
   // Apply dynamic sorting
+  const currentSort = sortBy.value || 'verified';
   result.sort((a, b) => {
-    if (sortBy.value === 'verified') {
-      return (b.isVerified ? 1 : 0) - (a.isVerified ? 1 : 0);
+    if (currentSort === 'verified') {
+      return (b?.isVerified ? 1 : 0) - (a?.isVerified ? 1 : 0);
     }
-    if (sortBy.value === 'price_asc') {
-      return (a.hourlyRate || 0) - (b.hourlyRate || 0);
+    if (currentSort === 'price_asc') {
+      return (a?.hourlyRate || 0) - (b?.hourlyRate || 0);
     }
-    if (sortBy.value === 'price_desc') {
-      return (b.hourlyRate || 0) - (a.hourlyRate || 0);
+    if (currentSort === 'price_desc') {
+      return (b?.hourlyRate || 0) - (a?.hourlyRate || 0);
     }
-    if (sortBy.value === 'experience_desc') {
-      return (b.experienceYears || 0) - (a.experienceYears || 0);
+    if (currentSort === 'experience_desc') {
+      return (b?.experienceYears || 0) - (a?.experienceYears || 0);
     }
     return 0;
   });
