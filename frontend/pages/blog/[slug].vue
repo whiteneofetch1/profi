@@ -57,7 +57,7 @@ useSeoMeta({
 
 useHead({
   link: [
-    { rel: 'canonical', href: computed(() => url.href) }
+    { rel: 'canonical', href: computed(() => `${url.origin}/blog/${slug}`) }
   ],
   script: computed(() => {
     if (!article.value) return [];

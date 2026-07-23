@@ -37,6 +37,16 @@ export default defineEventHandler(async (event) => {
     }
   };
 
+  const xmlEscape = (str: string) => {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  };
+
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
@@ -70,7 +80,7 @@ export default defineEventHandler(async (event) => {
   ${articles.map(post => {
     const lastMod = formatDate(post.publishDate || post.updatedAt || post.createdAt);
     return `<url>
-    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <loc>${baseUrl}/blog/${xmlEscape(post.slug)}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -79,7 +89,7 @@ export default defineEventHandler(async (event) => {
 
   <!-- 100 CIS Geo-SEO City Landing Pages -->
   ${CITIES_LIST.map(c => `<url>
-    <loc>${baseUrl}/city/${c.slug}</loc>
+    <loc>${baseUrl}/city/${xmlEscape(c.slug)}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
@@ -88,14 +98,15 @@ export default defineEventHandler(async (event) => {
   <!-- Dynamic Freelancers & Designers Profiles -->
   ${profiles.map(p => {
     const lastMod = formatDate(p.updatedAt || p.createdAt);
+    const profileSlug = xmlEscape(p.slug || p.id);
     const avatarImage = p.avatarUrl ? `
     <image:image>
-      <image:loc>${p.avatarUrl.startsWith('http') ? p.avatarUrl : `${baseUrl}${p.avatarUrl}`}</image:loc>
-      <image:title>${p.firstName} ${p.lastName} — ${p.title}</image:title>
+      <image:loc>${xmlEscape(p.avatarUrl.startsWith('http') ? p.avatarUrl : `${baseUrl}${p.avatarUrl}`)}</image:loc>
+      <image:title>${xmlEscape(`${p.firstName} ${p.lastName} — ${p.title}`)}</image:title>
     </image:image>` : '';
 
     return `<url>
-    <loc>${baseUrl}/profiles/${p.id}</loc>
+    <loc>${baseUrl}/profiles/${profileSlug}</loc>
     <lastmod>${lastMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>${avatarImage}

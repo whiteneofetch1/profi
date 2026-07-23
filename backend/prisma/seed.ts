@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { slugify, generateProfileSlug } from './src/utils/translit';
 
 const prisma = new PrismaClient();
 
@@ -246,9 +247,10 @@ async function main() {
       },
     });
 
-    await prisma.devProfile.create({
+    const profile = await prisma.devProfile.create({
       data: {
         userId: user.id,
+        slug: generateProfileSlug(item.firstName, item.lastName, user.id),
         firstName: item.firstName,
         lastName: item.lastName,
         title: item.title,
@@ -534,12 +536,8 @@ async function main() {
       ? `Как ${verb} при помощи ${topic.subject}: подробное руководство (часть ${Math.floor(i / 10) + 1})`
       : `Топ-${5 + (i % 6)} способов ${verb} в процессе ${topic.subject}`;
 
-    // Clean dynamic slug
-    const baseSlug = titleVal
-      .toLowerCase()
-      .replace(/[^a-zа-я0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .slice(0, 50);
+    // Clean dynamic transliterated slug
+    const baseSlug = slugify(titleVal);
     const slugVal = `${baseSlug}-${i}`;
 
     const descriptionVal = `Профессиональный разбор темы: как ${verb} в сфере ${topic.subject}. Читайте советы эксперта ${author.name} (${author.role}) специально для платформы fyxi.ru.`;

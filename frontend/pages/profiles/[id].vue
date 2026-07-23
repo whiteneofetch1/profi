@@ -66,7 +66,7 @@ useSeoMeta({
 
 useHead({
   link: [
-    { rel: 'canonical', href: computed(() => url.href) }
+    { rel: 'canonical', href: computed(() => profile.value ? `${url.origin}/profiles/${profile.value.slug || profile.value.id}` : url.href) }
   ],
   script: computed(() => {
     if (!profile.value) return [];

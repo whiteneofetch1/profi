@@ -1,7 +1,26 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { Type } from '@sinclair/typebox';
+import { generateProfileSlug } from '../utils/translit';
 
 export default async function profileRoutes(fastify: FastifyInstance) {
+  async function findProfileByIdOrSlug(param: string) {
+    return await fastify.prisma.devProfile.findFirst({
+      where: {
+        OR: [
+          { id: param },
+          { slug: param }
+        ]
+      },
+      include: {
+        user: {
+          select: {
+            lastActive: true,
+          },
+        },
+      },
+    });
+  }
+
   
   // 1. GET ALL APPROVED PROFILES (CATALOG)
   fastify.get(
@@ -75,11 +94,11 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       }
 
       // Format response, strictly obfuscating gated contact data
-      const gatedProfiles = profiles.map(profile => {
-        const isUnlocked = unlockedProfileIds.includes(profile.id);
+        const slug = profile.slug || generateProfileSlug(profile.firstName, profile.lastName, profile.id);
 
         return {
           id: profile.id,
+          slug,
           firstName: profile.firstName,
           lastName: profile.lastName,
           title: profile.title,
@@ -113,16 +132,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
       const { id } = request.params;
 
-      const profile = await fastify.prisma.devProfile.findUnique({
-        where: { id },
-        include: {
-          user: {
-            select: {
-              lastActive: true,
-            },
-          },
-        },
-      });
+      const profile = await findProfileByIdOrSlug(id);
 
       if (!profile) {
         return reply.status(404).send({ error: 'Specialist profile not found' });
@@ -157,8 +167,11 @@ export default async function profileRoutes(fastify: FastifyInstance) {
         }
       }
 
+      const slug = profile.slug || generateProfileSlug(profile.firstName, profile.lastName, profile.id);
+
       reply.send({
         id: profile.id,
+        slug,
         firstName: profile.firstName,
         lastName: profile.lastName,
         title: profile.title,
@@ -269,7 +282,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
     '/:id/reviews',
     {
       schema: {
-        params: Type.Object({ id: Type.String({ format: 'uuid' }) }),
+        params: Type.Object({ id: Type.String() }),
         body: Type.Object({
           authorName: Type.String(),
           rating: Type.Integer({ minimum: 1, maximum: 5 }),
@@ -281,9 +294,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
       const { authorName, rating, comment } = request.body;
 
-      const profile = await fastify.prisma.devProfile.findUnique({
-        where: { id },
-      });
+      const profile = await findProfileByIdOrSlug(id);
 
       if (!profile) {
         return reply.status(404).send({ error: 'Specialist profile not found' });
@@ -291,7 +302,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
       const review = await fastify.prisma.review.create({
         data: {
-          devProfileId: id,
+          devProfileId: profile.id,
           authorName: authorName.trim(),
           rating,
           comment: comment.trim(),
@@ -308,14 +319,17 @@ export default async function profileRoutes(fastify: FastifyInstance) {
     '/:id/reviews',
     {
       schema: {
-        params: Type.Object({ id: Type.String({ format: 'uuid' }) }),
+        params: Type.Object({ id: Type.String() }),
       },
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
       const { id } = request.params;
 
+      const profile = await findProfileByIdOrSlug(id);
+      const devProfileId = profile ? profile.id : id;
+
       const reviews = await fastify.prisma.review.findMany({
-        where: { devProfileId: id },
+        where: { devProfileId },
         orderBy: { createdAt: 'desc' },
       });
 

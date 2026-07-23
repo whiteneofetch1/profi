@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { Type } from '@sinclair/typebox';
+import { slugify } from '../utils/translit';
 
 export default async function adminRoutes(fastify: FastifyInstance) {
   // PUBLIC CLIENT ERROR LOGGING ENDPOINT (Bypasses Admin Firewall)
@@ -198,7 +199,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         const post = await fastify.prisma.blogPost.create({
           data: {
             title: body.title,
-            slug: body.slug,
+            slug: slugify(body.slug || body.title),
             category: body.category,
             readTime: body.readTime,
             author: body.author,

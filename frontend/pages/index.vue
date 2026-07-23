@@ -226,7 +226,7 @@ const collectionSchema = computed(() => {
       'itemListElement': filteredProfiles.value.slice(0, 12).map((p, index) => ({
         '@type': 'ListItem',
         'position': index + 1,
-        'url': `${url.origin}/profiles/${p.id}`,
+        'url': `${url.origin}/profiles/${getProfileSlug(p)}`,
         'name': `${p.firstName} ${p.lastName} — ${p.title}`
       }))
     }
@@ -264,12 +264,7 @@ const faqSchema = {
   ]
 };
 
-const canonicalUrl = computed(() => {
-  if (process.client) {
-    return window.location.href.replace(/^http:\/\//, 'https://');
-  }
-  return `https://fyxi.ru${url.pathname}`;
-});
+const canonicalUrl = computed(() => 'https://fyxi.ru/');
 
 useHead({
   link: [
@@ -288,7 +283,7 @@ useHead({
   })
 });
 
-function navigateToProfile(event: MouseEvent, profileId: string) {
+function navigateToProfile(event: MouseEvent, profile: any) {
   const target = event.target as HTMLElement;
   if (
     target.tagName === 'A' || 
@@ -299,7 +294,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
   ) {
     return;
   }
-  navigateTo('/profiles/' + profileId);
+  navigateTo('/profiles/' + getProfileSlug(profile));
 }
 </script>
 
@@ -408,7 +403,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
             :style="{ transform: tiltStyle[profile.id] }"
             @mousemove="handleTilt($event, profile.id)"
             @mouseleave="handleResetTilt(profile.id)"
-            @click="navigateToProfile($event, profile.id)"
+            @click="navigateToProfile($event, profile)"
           >
             <!-- Card Header -->
             <div class="talent-card-header">
@@ -418,7 +413,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
               </div>
               <div class="talent-meta">
                 <div class="name-badge-row">
-                  <NuxtLink :to="'/profiles/' + profile.id" class="talent-name-link">
+                  <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="talent-name-link">
                     <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
                   </NuxtLink>
                   <span v-if="profile.isVerified" class="verified-check-badge" title="Профиль проверен администратором">✓ Verified</span>
@@ -444,7 +439,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
             <!-- Biography -->
             <div class="talent-bio">
               <p class="bio-text">{{ profile.bio }}</p>
-              <NuxtLink :to="'/profiles/' + profile.id" class="read-more-link">Подробнее об исполнителе →</NuxtLink>
+              <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="read-more-link">Подробнее об исполнителе →</NuxtLink>
             </div>
 
             <!-- Skill Tags -->

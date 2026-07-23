@@ -30,6 +30,7 @@ enum Role {
 
 model DevProfile {
   id              String       @id @default(uuid())
+  slug            String?      @unique
   userId          String       @unique
   user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName       String

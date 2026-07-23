@@ -59,7 +59,7 @@ const breadcrumbsSchema = {
 
 useHead({
   link: [
-    { rel: 'canonical', href: computed(() => url.href) }
+    { rel: 'canonical', href: computed(() => `${url.origin}/blog`) }
   ],
   script: computed(() => [
     { type: 'application/ld+json', children: JSON.stringify(blogSchema.value) },

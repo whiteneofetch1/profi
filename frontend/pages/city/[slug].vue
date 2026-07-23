@@ -53,7 +53,7 @@ useSeoMeta({
 
 useHead({
   link: [
-    { rel: 'canonical', href: computed(() => `https://fyxi.ru/city/${city.slug}`) }
+    { rel: 'canonical', href: computed(() => `${url.origin}/city/${city.slug}`) }
   ],
   script: computed(() => [
     {
@@ -257,7 +257,7 @@ function getAvailabilityLabel(status: string) {
               </div>
               <div class="talent-meta">
                 <div class="name-badge-row">
-                  <NuxtLink :to="'/profiles/' + profile.id" class="talent-name-link">
+                  <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="talent-name-link">
                     <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
                   </NuxtLink>
                   <span v-if="profile.isVerified" class="verified-check-badge">✓ Verified</span>
@@ -279,7 +279,7 @@ function getAvailabilityLabel(status: string) {
 
             <div class="talent-bio">
               <p class="bio-text">{{ profile.bio }}</p>
-              <NuxtLink :to="'/profiles/' + profile.id" class="read-more-link">Подробнее об исполнителе →</NuxtLink>
+              <NuxtLink :to="'/profiles/' + getProfileSlug(profile)" class="read-more-link">Подробнее об исполнителе →</NuxtLink>
             </div>
 
             <div class="skills-container">
