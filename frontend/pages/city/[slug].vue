@@ -51,11 +51,11 @@ useSeoMeta({
   keywords: `заказать сайт на тильде ${city.name.toLowerCase()}, веб дизайнер тильда ${city.name.toLowerCase()}, разработка zero block ${city.name.toLowerCase()}, фрилансеры ${city.name.toLowerCase()}, контакты разработчиков tilda`
 });
 
-useHead({
+useHead(() => ({
   link: [
-    { rel: 'canonical', href: computed(() => `${url.origin}/city/${city.slug}`) }
+    { rel: 'canonical', href: `${url.origin}/city/${city.slug}` }
   ],
-  script: computed(() => [
+  script: [
     {
       type: 'application/ld+json',
       children: JSON.stringify({
@@ -99,8 +99,8 @@ useHead({
         ]
       })
     }
-  ])
-});
+  ]
+}));
 
 // Client-side text, skill & price range filtering + sorting
 const filteredProfiles = computed(() => {

@@ -84,11 +84,11 @@ useSeoMeta({
   keywords: () => article.value ? article.value.keywords.join(', ') : 'fyxi, IT, блог, фриланс'
 });
 
-useHead({
+useHead(() => ({
   link: [
-    { rel: 'canonical', href: computed(() => `${url.origin}/blog/${slug}`) }
+    { rel: 'canonical', href: `${url.origin}/blog/${slug}` }
   ],
-  script: computed(() => {
+  script: (() => {
     if (!article.value) return [];
     
     const blogPostingSchema = {
@@ -148,8 +148,8 @@ useHead({
       { type: 'application/ld+json', children: JSON.stringify(blogPostingSchema) },
       { type: 'application/ld+json', children: JSON.stringify(breadcrumbsSchema) }
     ];
-  })
-});
+  })()
+}));
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '';

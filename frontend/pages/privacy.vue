@@ -10,7 +10,7 @@ useSeoMeta({
 });
 
 useHead({
-  link: [{ rel: 'canonical', href: computed(() => `${url.origin}/privacy`) }],
+  link: [{ rel: 'canonical', href: `${url.origin}/privacy` }],
 });
 </script>
 

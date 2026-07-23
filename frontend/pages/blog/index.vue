@@ -57,15 +57,15 @@ const breadcrumbsSchema = {
   ]
 };
 
-useHead({
+useHead(() => ({
   link: [
-    { rel: 'canonical', href: computed(() => `${url.origin}/blog`) }
+    { rel: 'canonical', href: `${url.origin}/blog` }
   ],
-  script: computed(() => [
+  script: [
     { type: 'application/ld+json', children: JSON.stringify(blogSchema.value) },
     { type: 'application/ld+json', children: JSON.stringify(breadcrumbsSchema) }
-  ])
-});
+  ]
+}));
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '';
