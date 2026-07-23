@@ -324,6 +324,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
           v-model="searchQuery" 
           type="text" 
           class="search-input" 
+          aria-label="Поиск по имени, стеку или навыкам"
           placeholder="Поиск по имени, стеку или навыкам (например: Vue, Figma)..."
         />
       </div>
@@ -354,14 +355,14 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
 
         <!-- Extra Filter Selects -->
         <div class="filter-selects">
-          <select v-model="sortBy" class="filter-select">
+          <select v-model="sortBy" class="filter-select" aria-label="Сортировка специалистов">
             <option value="verified">По рейтингу (Verified)</option>
             <option value="price_asc">По цене: сначала недорогие</option>
             <option value="price_desc">По цене: сначала дорогие</option>
             <option value="experience_desc">По опыту работы (лет)</option>
           </select>
 
-          <select v-model="filterAvailability" class="filter-select">
+          <select v-model="filterAvailability" class="filter-select" aria-label="Фильтр по статусу занятости специалистов">
             <option value="all">Статус занятости</option>
             <option value="FREE">Свободен для проектов</option>
             <option value="OPEN_FOR_OFFERS">Рассматривает предложения</option>
@@ -451,15 +452,18 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
               <div class="contact-list">
                 <div class="contact-item">
                   <span class="emoji-ico">✉️ Email:</span>
-                  <a :href="`mailto:${profile.contactEmail}`">{{ profile.contactEmail }}</a>
+                  <a v-if="profile.isUnlocked && profile.contactEmail" :href="`mailto:${profile.contactEmail}`">{{ profile.contactEmail }}</a>
+                  <span v-else class="masked-contact-text" aria-label="Контакт скрыт до оплаты">alex.v***@fyxi.ru</span>
                 </div>
                 <div class="contact-item">
                   <span class="emoji-ico">✈️ Telegram:</span>
-                  <a :href="`https://t.me/${profile.contactTelegram?.replace('@', '')}`" target="_blank">{{ profile.contactTelegram }}</a>
+                  <a v-if="profile.isUnlocked && profile.contactTelegram" :href="`https://t.me/${profile.contactTelegram?.replace('@', '')}`" target="_blank" rel="noopener">{{ profile.contactTelegram }}</a>
+                  <span v-else class="masked-contact-text" aria-label="Контакт скрыт до оплаты">@alex_***</span>
                 </div>
                 <div v-if="profile.contactPhone" class="contact-item">
                   <span class="emoji-ico">📞 Телефон:</span>
-                  <span>{{ profile.contactPhone }}</span>
+                  <span v-if="profile.isUnlocked">{{ profile.contactPhone }}</span>
+                  <span v-else class="masked-contact-text" aria-label="Контакт скрыт до оплаты">+7 (903) ***-**-**</span>
                 </div>
               </div>
 
