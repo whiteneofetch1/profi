@@ -35,9 +35,9 @@ if (!article.value) {
 // Fetch list of all published blog posts to display related ones
 const { data: allArticles } = await useFetch<any[]>(`${config.public.apiUrl}/blog`);
 const relatedArticles = computed(() => {
-  if (!allArticles.value || !article.value) return [];
+  if (!allArticles.value || !article.value || !Array.isArray(allArticles.value)) return [];
   return allArticles.value
-    .filter(p => p.slug !== slug)
+    .filter(a => a.slug !== article.value.slug)
     .slice(0, 3);
 });
 

@@ -28,7 +28,7 @@ const blogSchema = computed(() => {
     'name': 'Блог fyxi',
     'description': 'Полезные материалы по IT-рекрутингу, аутстаффингу, выбору подрядчиков и оптимизации бюджетов на разработку и дизайн.',
     'url': url.href,
-    'blogPost': (articles.value || []).slice(0, 10).map(post => ({
+    'blogPost': (Array.isArray(articles.value) ? articles.value : []).slice(0, 10).map(post => ({
       '@type': 'BlogPosting',
       'headline': post.title,
       'description': post.description,
