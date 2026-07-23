@@ -50,24 +50,28 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
       // GATING LOGIC: Read current user's unlocked list if they are authenticated
       let unlockedProfileIds: String[] = [];
-      try {
-        const payload = await request.jwtVerify() as any;
-        if (payload && payload.id) {
-          const activePurchases = await fastify.prisma.unlockedProfile.findMany({
-            where: {
-              purchase: {
-                clientId: payload.id,
-                status: 'COMPLETED',
+      const authHeader = request.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.substring(7);
+          const payload = fastify.jwt.verify(token) as any;
+          if (payload && payload.id) {
+            const activePurchases = await fastify.prisma.unlockedProfile.findMany({
+              where: {
+                purchase: {
+                  clientId: payload.id,
+                  status: 'COMPLETED',
+                },
               },
-            },
-            select: {
-              devProfileId: true,
-            },
-          });
-          unlockedProfileIds = activePurchases.map(p => p.devProfileId);
+              select: {
+                devProfileId: true,
+              },
+            });
+            unlockedProfileIds = activePurchases.map(p => p.devProfileId);
+          }
+        } catch (err) {
+          // Guest mode; safely ignore invalid token
         }
-      } catch (err) {
-        // Not logged in or invalid token; proceed as guest
       }
 
       // Format response, strictly obfuscating gated contact data
@@ -126,27 +130,31 @@ export default async function profileRoutes(fastify: FastifyInstance) {
 
       // Check unlock status for active user
       let isUnlocked = false;
-      try {
-        const payload = await request.jwtVerify() as any;
-        if (payload && payload.id) {
-          // Admins or the developer themselves can always see their own contacts
-          if (payload.role === 'ADMIN' || profile.userId === payload.id) {
-            isUnlocked = true;
-          } else {
-            const unlockRecord = await fastify.prisma.unlockedProfile.findFirst({
-              where: {
-                devProfileId: profile.id,
-                purchase: {
-                  clientId: payload.id,
-                  status: 'COMPLETED',
+      const singleAuthHeader = request.headers.authorization;
+      if (singleAuthHeader && singleAuthHeader.startsWith('Bearer ')) {
+        try {
+          const token = singleAuthHeader.substring(7);
+          const payload = fastify.jwt.verify(token) as any;
+          if (payload && payload.id) {
+            // Admins or the developer themselves can always see their own contacts
+            if (payload.role === 'ADMIN' || profile.userId === payload.id) {
+              isUnlocked = true;
+            } else {
+              const unlockRecord = await fastify.prisma.unlockedProfile.findFirst({
+                where: {
+                  devProfileId: profile.id,
+                  purchase: {
+                    clientId: payload.id,
+                    status: 'COMPLETED',
+                  },
                 },
-              },
-            });
-            isUnlocked = !!unlockRecord;
+              });
+              isUnlocked = !!unlockRecord;
+            }
           }
+        } catch (err) {
+          // Guest mode; safely ignore invalid token
         }
-      } catch (err) {
-        // Not authenticated
       }
 
       reply.send({
