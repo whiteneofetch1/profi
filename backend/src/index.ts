@@ -120,7 +120,28 @@ async function bootstrap() {
       });
     });
 
-    // 5. Start Listening
+    // 5. Auto-seed Default Admin Account
+    try {
+      const bcrypt = await import('bcrypt');
+      const adminEmail = 'admin@fyxi.ru';
+      const existingAdmin = await fastify.prisma.user.findUnique({ where: { email: adminEmail } });
+      if (!existingAdmin) {
+        const passwordHash = await bcrypt.hash('admin123456', 10);
+        await fastify.prisma.user.create({
+          data: {
+            email: adminEmail,
+            passwordHash,
+            role: 'ADMIN',
+            isEmailVerified: true,
+          },
+        });
+        console.log(`🛡 Default Admin Account auto-created: ${adminEmail} / admin123456`);
+      }
+    } catch (seedErr) {
+      fastify.log.error('Failed to seed default admin:', seedErr);
+    }
+
+    // 6. Start Listening
     const port = Number(process.env.PORT) || 5010;
     const host = '0.0.0.0'; // Essential to bind within Docker containers
 

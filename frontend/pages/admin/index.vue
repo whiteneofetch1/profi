@@ -17,6 +17,12 @@ const isConfigSaving = ref(false);
 // Tabs Switcher
 const activeTab = ref<'profiles' | 'blog' | 'errors'>('profiles');
 
+// Admin Login state
+const adminEmail = ref('admin@fyxi.ru');
+const adminPassword = ref('');
+const adminLoginError = ref('');
+const isAdminLoggingIn = ref(false);
+
 // Error logs diagnostic state
 const errorLogs = ref<any[]>([]);
 const isErrorsLoading = ref(false);
@@ -24,6 +30,30 @@ const errorSearchQuery = ref('');
 const errorLevelFilter = ref('all');
 const errorResolvedFilter = ref('unresolved');
 const selectedErrorForStack = ref<any | null>(null);
+
+async function handleAdminLogin() {
+  adminLoginError.value = '';
+  isAdminLoggingIn.value = true;
+  const config = useRuntimeConfig();
+  try {
+    const data = await $fetch<any>(`${config.public.apiUrl}/auth/login`, {
+      method: 'POST',
+      body: {
+        email: adminEmail.value,
+        password: adminPassword.value,
+      },
+    });
+    if (data?.user) {
+      auth.setUser(data.user);
+      if (showToast) showToast('Успешный вход в Суперадминку!', 'success');
+      await loadAdminData();
+    }
+  } catch (err: any) {
+    adminLoginError.value = err.data?.error || 'Неверный логин или пароль администратора';
+  } finally {
+    isAdminLoggingIn.value = false;
+  }
+}
 
 async function loadErrorLogs() {
   const config = useRuntimeConfig();
@@ -192,6 +222,23 @@ async function toggleVerify(profileId: string, currentStatus: boolean) {
     loadAdminData();
   } catch (err) {
     showToast('Ошибка при изменении статуса верификации', 'info');
+  }
+}
+
+// Delete profile permanently
+async function deleteProfile(profileId: string, name: string) {
+  if (!confirm(`Вы уверены, что хотите БЕЗВОЗВРАТНО УДАЛИТЬ анкета специалиста "${name}"?`)) {
+    return;
+  }
+  const config = useRuntimeConfig();
+  try {
+    await $fetch(`${config.public.apiUrl}/admin/profiles/${profileId}`, {
+      method: 'DELETE',
+    });
+    showToast(`Профиль "${name}" успешно удалён из базы данных!`, 'success');
+    loadAdminData();
+  } catch (err) {
+    showToast('Ошибка при удалении анкеты специалиста', 'info');
   }
 }
 
@@ -387,12 +434,34 @@ function formatDate(dateStr: string) {
   <div class="admin-page">
     <div class="admin-container">
       
-      <!-- Gated Warning for non-admins -->
+      <!-- Superadmin Login Form (when not logged in as Admin) -->
       <div v-if="!auth.isAdmin" class="access-denied-view">
-        <div class="lock-shield">🛑</div>
-        <h2>Доступ ограничен</h2>
-        <p>Для просмотра этого раздела требуются права системного администратора profiTilda.</p>
-        <NuxtLink to="/" class="btn-cyber">Вернуться на главную</NuxtLink>
+        <div class="lock-shield">🛡️</div>
+        <h2>Вход в Панель Суперадминистратора</h2>
+        <p>Для просмотра данных и модерации воспользуйтесь учётной записью администратора.</p>
+
+        <form @submit.prevent="handleAdminLogin" class="admin-login-form">
+          <div class="form-group">
+            <label>Email администратора</label>
+            <input v-model="adminEmail" type="email" class="form-input" required placeholder="admin@fyxi.ru" />
+          </div>
+          <div class="form-group">
+            <label>Пароль</label>
+            <input v-model="adminPassword" type="password" class="form-input" required placeholder="••••••••" />
+          </div>
+
+          <div v-if="adminLoginError" class="auth-error" style="margin-bottom: 1rem;">
+            <span>⚠️ {{ adminLoginError }}</span>
+          </div>
+
+          <button :disabled="isAdminLoggingIn" type="submit" class="save-config-btn" style="width: 100%;">
+            {{ isAdminLoggingIn ? 'Авторизация...' : 'Войти в панель администратора 🔑' }}
+          </button>
+
+          <div class="credentials-hint">
+            💡 <span>Логин: <code>admin@fyxi.ru</code> | Пароль: <code>admin123456</code></span>
+          </div>
+        </form>
       </div>
 
       <template v-else>
@@ -466,6 +535,7 @@ function formatDate(dateStr: string) {
                     <th>Контакты для проверки</th>
                     <th>Одобрено в каталог</th>
                     <th>Бейдж Verified</th>
+                    <th>Управление</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -502,6 +572,15 @@ function formatDate(dateStr: string) {
                         @click="toggleVerify(profile.id, profile.isVerified)"
                       >
                         {{ profile.isVerified ? 'Verified' : 'Выдать' }}
+                      </button>
+                    </td>
+                    <td>
+                      <button 
+                        class="action-delete-btn" 
+                        @click="deleteProfile(profile.id, `${profile.firstName} ${profile.lastName}`)"
+                        title="Удалить профиль специалиста"
+                      >
+                        🗑️ Удалить
                       </button>
                     </td>
                   </tr>
@@ -1569,8 +1648,47 @@ function formatDate(dateStr: string) {
   font-size: 0.82rem;
   white-space: pre-wrap;
   word-break: break-all;
-  max-height: 450px;
+  max-height: 400px;
   overflow-y: auto;
+}
+
+.action-delete-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.admin-login-form {
+  max-width: 420px;
+  margin: 2rem auto 0;
   text-align: left;
+}
+
+.credentials-hint {
+  margin-top: 1.5rem;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glow);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.credentials-hint code {
+  color: #38bdf8;
+  font-weight: 700;
 }
 </style>

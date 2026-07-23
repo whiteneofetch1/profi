@@ -117,6 +117,33 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     }
   );
 
+  // DELETE PROFILE BY ADMIN
+  fastify.delete(
+    '/profiles/:id',
+    {
+      schema: {
+        params: Type.Object({ id: Type.String() }),
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as any;
+
+      const profile = await fastify.prisma.devProfile.findFirst({
+        where: { OR: [{ id }, { slug: id }] },
+      });
+
+      if (!profile) {
+        return reply.status(404).send({ error: 'Профиль специалиста не найден' });
+      }
+
+      await fastify.prisma.devProfile.delete({
+        where: { id: profile.id },
+      });
+
+      reply.send({ success: true, message: 'Профиль специалиста успешно удалён' });
+    }
+  );
+
   // 4. GET AND UPDATE PLATFORM PRICING CONFIGURATION
   fastify.get('/config', async (request, reply) => {
     let config = await fastify.prisma.platformConfig.findFirst();
