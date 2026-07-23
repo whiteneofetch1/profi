@@ -583,7 +583,8 @@ async function handleSaveProfile() {
 
             <div class="form-group">
               <label>Ключевые навыки (Skills) — через запятую</label>
-              <input v-model="skillsInput" type="text" class="form-input" placeholder="Vue, TypeScript, Pinia, Node.js" />
+              <input v-model="skillsInput" type="text" class="form-input" placeholder="например: Zero Block, Step-by-step анимация, Figma, Мобильная адаптация, Tilda CRM" />
+              <p class="text-xs text-gray-400 mt-1">Примеры: Zero Block, Step-by-Step анимация, Figma to Tilda, Мобильная адаптация, Tilda E-Commerce, Custom CSS/JS, Подключение эквайринга</p>
             </div>
 
             <div class="form-group">
