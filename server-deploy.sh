@@ -96,9 +96,6 @@ echo -e "${CYAN}🏗️ Production-сборка Nuxt 3 (SSR + Nitro)...${NC}"
 
 kill_port() {
   local PORT=$1
-  if command -v fuser &> /dev/null; then
-    fuser -k -9 ${PORT}/tcp 2>/dev/null || true
-  fi
   if command -v lsof &> /dev/null; then
     local PIDS=$(lsof -t -i:${PORT} 2>/dev/null || true)
     if [ -n "$PIDS" ]; then
@@ -111,13 +108,15 @@ kill_port() {
       kill -9 $SSPIDS 2>/dev/null || true
     fi
   fi
+  npx --yes kill-port ${PORT} 2>/dev/null || true
 }
 
 # 6. Перезапуск и проверка здоровья PM2
 echo -e "\n${CYAN}🚀 3. Перезапуск процессов в PM2...${NC}"
-echo -e "${CYAN}🧹 Удаление старого конфликтующего процесса 'api' в PM2...${NC}"
+echo -e "${CYAN}🧹 Удаление старых конфликтующих процессов в PM2...${NC}"
 pm2 delete api 2>/dev/null || true
-echo -e "${CYAN}🧹 Принудительное освобождение портов 5010 и 5011 (fuser/lsof/ss)...${NC}"
+pm2 delete 0 2>/dev/null || true
+echo -e "${CYAN}🧹 Принудительное освобождение портов 5010 и 5011 (kill-port/lsof/ss)...${NC}"
 kill_port 5010
 kill_port 5011
 
