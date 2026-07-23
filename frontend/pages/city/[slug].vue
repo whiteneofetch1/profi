@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useRoute, createError } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { CITIES_LIST, getCityBySlug } from '~/utils/cities';
 import { useCartStore } from '~/stores/cart';
 
