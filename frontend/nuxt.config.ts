@@ -11,6 +11,9 @@ export default defineNuxtConfig({
 
   // HYBRID RENDERING ENGINE + SWR SERVER CACHE (Fulfills exact SEO speed optimization + SPA cabinets)
   routeRules: {
+    // Automatic backend proxy rule for /api requests (bypasses Nginx config issues)
+    '/api/**': { proxy: 'http://127.0.0.1:5010/api/**' },
+
     // Stale-While-Revalidate (SWR) for Articles & Blog (Cached for 1 hour on server-side)
     '/blog': { swr: 3600 },
     '/blog/**': { swr: 3600 },
