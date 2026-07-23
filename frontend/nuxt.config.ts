@@ -95,8 +95,7 @@ export default defineNuxtConfig({
   },
 
   experimental: {
-    // Отключаем appManifest из-за ошибки #app-manifest при сборке
-    appManifest: false,
+    appManifest: true,
   },
 
   devtools: { enabled: false }
