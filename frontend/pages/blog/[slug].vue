@@ -23,6 +23,17 @@ const relatedArticles = computed(() => {
     .slice(0, 3);
 });
 
+function getCategoryTheme(cat: string) {
+  if (!cat) return 'cat-purple';
+  const c = cat.toLowerCase();
+  if (c.includes('экономика') || c.includes('найм') || c.includes('бюджет')) return 'cat-purple';
+  if (c.includes('маркетплейс') || c.includes('платформ')) return 'cat-cyan';
+  if (c.includes('e-commerce') || c.includes('магазин') || c.includes('корзин')) return 'cat-emerald';
+  if (c.includes('технологии') || c.includes('разработк')) return 'cat-indigo';
+  if (c.includes('дизайн') || c.includes('zero block')) return 'cat-pink';
+  return 'cat-purple';
+}
+
 const tableOfContents = computed(() => {
   if (!article.value) return [];
   const regex = /<h2 id="([^"]+)">([^<]+)<\/h2>/g;
@@ -153,7 +164,7 @@ function formatDate(dateStr: string) {
         
         <!-- Header -->
         <header class="article-header">
-          <span class="category-badge">{{ article.category }}</span>
+          <span :class="['category-badge', getCategoryTheme(article.category)]">{{ article.category }}</span>
           <h1 class="article-title">{{ article.title }}</h1>
           
           <div class="author-row">
@@ -210,7 +221,7 @@ function formatDate(dateStr: string) {
             :to="'/blog/' + related.slug" 
             class="related-card"
           >
-            <span class="related-category">{{ related.category }}</span>
+            <span :class="['related-category', getCategoryTheme(related.category)]">{{ related.category }}</span>
             <h4 class="related-card-title">{{ related.title }}</h4>
             <span class="related-read-time">⏱️ {{ related.readTime }} чтения</span>
           </NuxtLink>
@@ -309,17 +320,17 @@ function formatDate(dateStr: string) {
 }
 
 .category-badge {
-  display: inline-block;
-  background: rgba(6, 182, 212, 0.08);
-  border: 1px solid rgba(6, 182, 212, 0.15);
-  color: var(--accent-cyan);
-  padding: 0.3rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   margin-bottom: 1.2rem;
+  transition: all 0.25s ease;
+  width: fit-content;
 }
 
 .article-title {
@@ -555,8 +566,8 @@ function formatDate(dateStr: string) {
 }
 
 .related-card {
-  background: rgba(139, 92, 246, 0.01);
-  border: 1px solid var(--border-glow);
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.8rem;
   border-radius: 20px;
   text-decoration: none;
@@ -565,22 +576,64 @@ function formatDate(dateStr: string) {
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  backdrop-filter: blur(12px);
 }
 
 .related-card:hover {
   transform: translateY(-4px);
-  background: rgba(139, 92, 246, 0.03);
-  border-color: var(--accent-purple);
-  box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.15);
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(168, 85, 247, 0.35);
+  box-shadow: 0 12px 30px -5px rgba(168, 85, 247, 0.2);
 }
 
 .related-category {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent-purple);
-  font-weight: 600;
-  margin-bottom: 0.8rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.9rem;
+  transition: all 0.25s ease;
+  width: fit-content;
+}
+
+/* Category Badge Color Themes */
+.cat-purple {
+  background: rgba(168, 85, 247, 0.12) !important;
+  color: #d8b4fe !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.15) !important;
+}
+
+.cat-cyan {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #7dd3fc !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.15) !important;
+}
+
+.cat-emerald {
+  background: rgba(52, 211, 153, 0.12) !important;
+  color: #6ee7b7 !important;
+  border: 1px solid rgba(52, 211, 153, 0.3) !important;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.15) !important;
+}
+
+.cat-indigo {
+  background: rgba(129, 140, 248, 0.12) !important;
+  color: #a5b4fc !important;
+  border: 1px solid rgba(129, 140, 248, 0.3) !important;
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.15) !important;
+}
+
+.cat-pink {
+  background: rgba(244, 114, 182, 0.12) !important;
+  color: #f472b6 !important;
+  border: 1px solid rgba(244, 114, 182, 0.3) !important;
+  box-shadow: 0 0 12px rgba(244, 114, 182, 0.15) !important;
 }
 
 .related-card-title {

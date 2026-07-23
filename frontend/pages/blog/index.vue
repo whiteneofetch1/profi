@@ -79,6 +79,17 @@ function formatDate(dateStr: string) {
   const year = dateObj.getFullYear();
   return `${day} ${month}, ${year}`;
 }
+
+function getCategoryTheme(cat: string) {
+  if (!cat) return 'cat-purple';
+  const c = cat.toLowerCase();
+  if (c.includes('экономика') || c.includes('найм') || c.includes('бюджет')) return 'cat-purple';
+  if (c.includes('маркетплейс') || c.includes('платформ')) return 'cat-cyan';
+  if (c.includes('e-commerce') || c.includes('магазин') || c.includes('корзин')) return 'cat-emerald';
+  if (c.includes('технологии') || c.includes('разработк')) return 'cat-indigo';
+  if (c.includes('дизайн') || c.includes('zero block')) return 'cat-pink';
+  return 'cat-purple';
+}
 </script>
 
 <template>
@@ -103,7 +114,7 @@ function formatDate(dateStr: string) {
       <div class="articles-grid">
         <article v-for="post in articles" :key="post.slug" class="blog-card">
           <div class="card-meta">
-            <span class="card-category">{{ post.category }}</span>
+            <span :class="['card-category', getCategoryTheme(post.category)]">{{ post.category }}</span>
             <span class="card-date">{{ formatDate(post.publishDate) }}</span>
           </div>
           
@@ -236,10 +247,52 @@ p {
 }
 
 .card-category {
-  color: var(--accent-cyan);
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  transition: all 0.25s ease;
+  width: fit-content;
+}
+
+/* Category Badge Color Themes */
+.cat-purple {
+  background: rgba(168, 85, 247, 0.12) !important;
+  color: #d8b4fe !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.15) !important;
+}
+
+.cat-cyan {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #7dd3fc !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.15) !important;
+}
+
+.cat-emerald {
+  background: rgba(52, 211, 153, 0.12) !important;
+  color: #6ee7b7 !important;
+  border: 1px solid rgba(52, 211, 153, 0.3) !important;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.15) !important;
+}
+
+.cat-indigo {
+  background: rgba(129, 140, 248, 0.12) !important;
+  color: #a5b4fc !important;
+  border: 1px solid rgba(129, 140, 248, 0.3) !important;
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.15) !important;
+}
+
+.cat-pink {
+  background: rgba(244, 114, 182, 0.12) !important;
+  color: #f472b6 !important;
+  border: 1px solid rgba(244, 114, 182, 0.3) !important;
+  box-shadow: 0 0 12px rgba(244, 114, 182, 0.15) !important;
 }
 
 .card-title {

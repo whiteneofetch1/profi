@@ -7,10 +7,18 @@
   --border-glow-hover: rgba(255, 255, 255, 0.12);
   
   /* Glowing Accents */
-  --accent-violet: #8b5cf6; /* Designer glow */
-  --accent-violet-rgb: 139, 92, 246;
+  --accent-violet: #a855f7; /* Designer glow */
+  --accent-violet-rgb: 168, 85, 247;
+  --accent-purple: #c084fc; /* Vibrant purple */
+  --accent-purple-rgb: 192, 132, 252;
   --accent-cyan: #06b6d4;   /* Developer glow */
   --accent-cyan-rgb: 6, 182, 212;
+  --accent-blue: #38bdf8;   /* Sky blue */
+  --accent-blue-rgb: 56, 189, 248;
+  --accent-emerald: #34d399;/* E-commerce emerald */
+  --accent-emerald-rgb: 52, 211, 153;
+  --accent-indigo: #818cf8; /* Tech indigo */
+  --accent-indigo-rgb: 129, 140, 248;
   
   --text-primary: #f8fafc;
   --text-muted: #94a3b8;
