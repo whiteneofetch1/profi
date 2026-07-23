@@ -189,11 +189,62 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   // 5. GET ALL BLOG POSTS (FOR CMS PANEL)
   fastify.get('/blog', async (request, reply) => {
     try {
-      const posts = await fastify.prisma.blogPost.findMany({
+      let posts = await fastify.prisma.blogPost.findMany({
         orderBy: {
           publishDate: 'desc',
         },
       });
+
+      if (posts.length === 0) {
+        // Auto-seed default articles if DB table is empty
+        const defaultPosts = [
+          {
+            slug: 'zakazat-sayt-na-tilda-cena-stoimost',
+            title: 'Заказать сайт на Tilda в 2026 году: реальная стоимость разработки, сметы и советы заказчику',
+            description: 'Подробный разбор стоимости разработки сайтов на Tilda в 2026 году. Узнайте разброс цен на лендинги, интернет-магазины и Zero Block, сметы студий и как сэкономить до 50% на выкупе контактов проверенных разработчиков.',
+            category: 'Разработка',
+            readTime: '9 мин',
+            author: 'Александра Власова',
+            authorRole: 'Senior Tilda & Zero Block Expert',
+            keywords: ['заказать сайт на тильде цена', 'стоимость разработки на tilda', 'разработка сайта tilda', 'сколько стоит лендинг на тильде', 'fyxi'],
+            publishDate: new Date('2026-07-20T10:00:00.000Z'),
+            content: `<p>Планируете запустить коммерческий проект или обновить действующий сайт на платформе Tilda Publishing? Один из первых вопросов, с которым сталкивается бизнес: <strong>сколько стоит разработка сайта на Tilda и из чего формируется итоговая смета?</strong> В данной статье мы детально разберем актуальные рыночные цены 2026 года, отличие базовых блоков от Zero Block, а также покажем, как найти топового исполнителя напрямую без переплат агентствам.</p><h2 id="pricing-breakdown">1. Сколько стоит разработка на Tilda в 2026 году?</h2><p>Стоимость проекта зависит от формата работы (фриланс или студия), объема страниц и уровня дизайна. На основе статистики реальных сделок цены распределяются следующим образом:</p><ul><li><strong>Простой промо-лендинг (на стандартных блоках):</strong> от 15 000 до 35 000 ₽.</li><li><strong>Авторский Landing Page в Zero Block:</strong> от 40 000 до 120 000 ₽.</li><li><strong>Корпоративный многостраничный сайт (5–15 страниц):</strong> от 60 000 до 180 000 ₽.</li><li><strong>Интернет-магазин e-commerce (до 1000 товаров):</strong> от 90 000 до 250 000 ₽.</li></ul>`
+          },
+          {
+            slug: 'top-6-sposobov-nastroit-step-by-step-v-processe-s-1',
+            title: 'Топ-6 способов настроить Step-by-Step анимацию в Tilda Zero Block',
+            description: 'Практическое руководство по созданию сложной пошаговой интерактивной анимации в Tilda Zero Block. Примеры настройки триггеров, Scroll Animation и советы по оптимизации скорости загрузки.',
+            category: 'Дизайн',
+            readTime: '7 мин',
+            author: 'Артём Смирнов',
+            authorRole: 'Lead Product Designer',
+            keywords: ['step by step tilda', 'zero block анимация', 'tilda animation', 'дизайн на тильде', 'fyxi'],
+            publishDate: new Date('2026-07-18T14:30:00.000Z'),
+            content: `<p>Интерактивный UI/UX дизайн — это ключ к высоким конверсиям в 2026 году. Пошаговая Step-by-Step анимация в Tilda Zero Block позволяет превратить обычную прокрутку в увлекательный сторителлинг.</p><h2 id="step-by-step-basics">1. Что такое Step-by-Step анимация?</h2><p>В отличие от базовых эффектов появление при скролле, Step-by-Step дает возможность задавать траектории, прозрачность, масштабирование и повороты элементов на каждом пикселе движения пользователя.</p>`
+          },
+          {
+            slug: 'kak-izbezhat-skrytyh-nacenok-pri-pomoschi-optimizacii-30',
+            title: 'Как избежать скрытых наценок веб-студий: экономим 30% бюджета при заказе сайта',
+            description: 'Инсайды IT-рынка 2026 года: за что на самом деле берут деньги студии и как прямой контакт с разработчиком на платформе fyxi экономит рекламный бюджет.',
+            category: 'Экономика найма',
+            readTime: '6 мин',
+            author: 'Алексей Миронов',
+            authorRole: 'CEO fyxi.ru',
+            keywords: ['веб студии скрытые наценки', 'как сэкономить на разработке', 'прямой найм разработчиков', 'заказ сайта без посредников'],
+            publishDate: new Date('2026-07-15T09:00:00.000Z'),
+            content: `<p>Каждый заказчик хочет получить максимальное качество за разумный бюджет. Однако сметы крупного агентства часто содержат до 60% скрытых расходов на маржу студии, зарплату аккаунт-менеджеров и офис.</p><h2 id="direct-hire">1. Преимущества прямого контакта со специалистом</h2><p>Платформа fyxi создана для устранения посредников. Заказывая контакты проверенного разработчика напрямую, вы платите фиксированную цену за результат.</p>`
+          }
+        ];
+
+        for (const item of defaultPosts) {
+          await fastify.prisma.blogPost.create({ data: item });
+        }
+
+        posts = await fastify.prisma.blogPost.findMany({
+          orderBy: { publishDate: 'desc' },
+        });
+      }
+
       reply.send(posts);
     } catch (err: any) {
       fastify.log.error(err);
