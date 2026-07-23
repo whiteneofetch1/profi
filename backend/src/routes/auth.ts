@@ -69,10 +69,31 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const { sendEmailNotification } = await import('../services/notifications');
       sendEmailNotification(email, 'Подтверждение Email | fyxi.ru', emailHtml).catch(() => {});
 
-      reply.send({
-        success: true,
-        message: 'Регистрация успешна. На вашу почту отправлено письмо с ссылкой для подтверждения.',
+      // Sign JWT Token for instant login
+      const token = await reply.jwtSign({
+        id: user.id,
+        email: user.email,
+        role: user.role,
       });
+
+      reply
+        .setCookie('token', token, {
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 7 * 24 * 60 * 60, // 7 days
+        })
+        .send({
+          success: true,
+          message: 'Регистрация успешна. Вы авторизованы. На вашу почту отправлено письмо для подтверждения.',
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            isEmailVerified: false,
+          },
+        });
     }
   );
 
@@ -155,11 +176,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
         return reply.status(401).send({ error: 'Invalid email or password' });
       }
 
-      // Check if email is verified
-      if (!user.isEmailVerified) {
-        return reply.status(403).send({ error: 'Пожалуйста, подтвердите ваш Email перед входом (ссылка была отправлена при регистрации).' });
-      }
-
       // Validate password
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (!isPasswordValid) {
@@ -192,6 +208,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
             id: user.id,
             email: user.email,
             role: user.role,
+            isEmailVerified: user.isEmailVerified,
             devProfile: user.devProfile,
           },
         });
@@ -233,6 +250,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
           id: user.id,
           email: user.email,
           role: user.role,
+          isEmailVerified: user.isEmailVerified,
           lastActive: user.lastActive,
           devProfile: user.devProfile,
           clientProfile: user.clientProfile,

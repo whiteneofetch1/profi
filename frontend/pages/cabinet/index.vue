@@ -107,16 +107,12 @@ async function handleAuth() {
       body,
     });
 
-    if (isLoginMode.value) {
-      if (data && data.user) {
-        auth.setUser(data.user);
-        if (showToast) showToast('Успешный вход в кабинет!', 'success');
-        populateForm();
+    if (data && data.user) {
+      auth.setUser(data.user);
+      if (showToast) {
+        showToast(isLoginMode.value ? 'Успешный вход в кабинет!' : 'Регистрация прошла успешно! Добро пожаловать.', 'success');
       }
-    } else {
-      // Registration successful -> requires email verification
-      registrationMessage.value = data.message || 'Регистрация прошла успешно! Проверьте вашу электронную почту для подтверждения аккаунта.';
-      if (showToast) showToast('Письмо с подтверждением отправлено на вашу почту!', 'info');
+      populateForm();
     }
   } catch (err: any) {
     authError.value = err.data?.error || 'Произошла ошибка при авторизации';
@@ -270,6 +266,15 @@ async function handleSaveProfile() {
               <p>Заполните форму, чтобы ваши навыки появились в поиске заказчиков.</p>
             </div>
             <button class="logout-btn" @click="handleLogout">Выйти 🚪</button>
+          </div>
+
+          <!-- Email Verification Banner -->
+          <div v-if="auth.user && !auth.user.isEmailVerified" class="status-banner warning">
+            <span class="status-icon">✉️</span>
+            <div>
+              <strong>Электронная почта не подтверждена</strong>
+              <p>Мы отправили письмо со ссылкой на <strong>{{ auth.user.email }}</strong>. Пожалуйста, подтвердите почту для активации всех возможностей.</p>
+            </div>
           </div>
 
           <!-- Approval Banner -->

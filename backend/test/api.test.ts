@@ -102,7 +102,11 @@ describe('fyxi REST API Integration Tests', () => {
       
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
-      expect(body.message).toContain('Регистрация успешна');
+      expect(body.user.email).toBe('test@fyxi.ru');
+
+      const cookieHeader = response.headers['set-cookie'];
+      expect(cookieHeader).toBeDefined();
+      expect(cookieHeader?.toString()).toContain('token=');
     });
 
     it('should reject registration if email is already taken', async () => {

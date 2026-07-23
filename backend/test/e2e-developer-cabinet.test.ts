@@ -120,15 +120,15 @@ describe('E2E Worker/Developer Cabinet Lifecycle Tests', () => {
     expect(regRes.statusCode).toBe(200);
     const regBody = JSON.parse(regRes.body);
     expect(regBody.success).toBe(true);
-    expect(regBody.message).toContain('Регистрация успешна');
+    expect(regBody.user.email).toBe('worker@tildadev.ru');
 
     const createdUser = usersTable.find(u => u.email === 'worker@tildadev.ru');
     expect(createdUser).toBeDefined();
     expect(createdUser.isEmailVerified).toBe(false);
     expect(createdUser.verificationToken).toBeDefined();
 
-    // 2. Worker tries to login BEFORE email verification -> MUST BE BLOCKED (403)
-    const blockedLoginRes = await app.inject({
+    // 2. Worker can log in via /auth/login immediately (instant access)
+    const loginRes = await app.inject({
       method: 'POST',
       url: '/auth/login',
       payload: {
@@ -137,8 +137,8 @@ describe('E2E Worker/Developer Cabinet Lifecycle Tests', () => {
       },
     });
 
-    expect(blockedLoginRes.statusCode).toBe(403);
-    expect(JSON.parse(blockedLoginRes.body).error).toContain('подтвердите');
+    expect(loginRes.statusCode).toBe(200);
+    expect(JSON.parse(loginRes.body).user.email).toBe('worker@tildadev.ru');
 
     // 3. Worker Verifies Email via Token (/auth/verify-email)
     const verifyRes = await app.inject({
