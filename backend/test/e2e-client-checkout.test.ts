@@ -158,7 +158,8 @@ describe('E2E Client Checkout & Contact Unlocking Flow', () => {
 
     expect(registerResponse.statusCode).toBe(200);
     const registerBody = JSON.parse(registerResponse.body);
-    const userId = registerBody.user.id;
+    expect(registerBody.success).toBe(true);
+    const userId = usersTable.find(u => u.email === 'agency@hr-pro.ru').id;
     const clientToken = app.jwt.sign({ id: userId, email: 'agency@hr-pro.ru', role: 'CLIENT' });
 
     // 2. CLIENT REQUESTS PROFILES -> CONTACT DETAILS MUST BE OBFUSCATED (NULL)

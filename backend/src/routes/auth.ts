@@ -31,12 +31,17 @@ export default async function authRoutes(fastify: FastifyInstance) {
       // Hash password
       const passwordHash = await bcrypt.hash(password, 10);
 
+      const crypto = await import('crypto');
+      const verificationToken = crypto.randomBytes(24).toString('hex');
+
       // Create user
       const user = await fastify.prisma.user.create({
         data: {
           email,
           passwordHash,
           role,
+          isEmailVerified: false,
+          verificationToken,
         },
       });
 
@@ -47,16 +52,67 @@ export default async function authRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Generate JWT Token
-      const token = await reply.jwtSign({
+      const verifyUrl = `${process.env.FRONTEND_URL || 'https://fyxi.ru'}/cabinet?verifyToken=${verificationToken}`;
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; background: #0b0a14; color: #ffffff; padding: 2rem; border-radius: 12px;">
+          <h2 style="color: #8b5cf6;">Подтверждение Email на fyxi.ru</h2>
+          <p>Здравствуйте! Вы зарегистрировались на платформе fyxi.ru с email <strong>${email}</strong>.</p>
+          <p>Пожалуйста, подтвердите вашу почту, перейдя по ссылке ниже:</p>
+          <p style="margin: 1.5rem 0;">
+            <a href="${verifyUrl}" style="background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%); color: #ffffff; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 8px; font-weight: 600;">Подтвердить Email</a>
+          </p>
+          <p style="font-size: 0.8rem; color: #94a3b8;">Если вы не регистрировались на сайте, просто проигнорируйте это письмо.</p>
+        </div>
+      `;
+
+      const { sendEmailNotification } = await import('../services/notifications');
+      sendEmailNotification(email, 'Подтверждение Email | fyxi.ru', emailHtml).catch(() => {});
+
+      reply.send({
+        success: true,
+        message: 'Регистрация успешна. На вашу почту отправлено письмо с ссылкой для подтверждения.',
+      });
+    }
+  );
+
+  // VERIFY EMAIL ENDPOINT
+  fastify.post(
+    '/verify-email',
+    {
+      schema: {
+        body: Type.Object({
+          token: Type.String(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const { token } = request.body as any;
+
+      const user = await fastify.prisma.user.findFirst({
+        where: { verificationToken: token },
+      });
+
+      if (!user) {
+        return reply.status(400).send({ error: 'Ссылка для подтверждения недействительна или уже использована.' });
+      }
+
+      await fastify.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          isEmailVerified: true,
+          verificationToken: null,
+        },
+      });
+
+      // Generate JWT Token and log them in
+      const jwtToken = await reply.jwtSign({
         id: user.id,
         email: user.email,
         role: user.role,
       });
 
-      // Set cookie and return
       reply
-        .setCookie('token', token, {
+        .setCookie('token', jwtToken, {
           path: '/',
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -64,6 +120,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
           maxAge: 7 * 24 * 60 * 60, // 7 days
         })
         .send({
+          success: true,
+          message: 'Ваш Email успешно подтвержден!',
           user: {
             id: user.id,
             email: user.email,
@@ -94,6 +152,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
       if (!user || !user.passwordHash) {
         return reply.status(401).send({ error: 'Invalid email or password' });
+      }
+
+      // Check if email is verified
+      if (!user.isEmailVerified) {
+        return reply.status(403).send({ error: 'Пожалуйста, подтвердите ваш Email перед входом (ссылка была отправлена при регистрации).' });
       }
 
       // Validate password
@@ -260,6 +323,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
         where: { id: user.id },
         data: {
           passwordHash,
+          isEmailVerified: true, // Resetting password implicitly verifies email
+          verificationToken: null,
           resetToken: null,
           resetTokenExpires: null,
         },

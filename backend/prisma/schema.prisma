@@ -12,6 +12,8 @@ model User {
   email             String         @unique
   passwordHash      String?        // Nullable for auto-generated guest accounts
   role              Role           @default(CLIENT)
+  isEmailVerified   Boolean        @default(false)
+  verificationToken String?
   resetToken        String?        // Password reset token
   resetTokenExpires DateTime?      // Expiration time of reset token
   lastActive        DateTime       @default(now())

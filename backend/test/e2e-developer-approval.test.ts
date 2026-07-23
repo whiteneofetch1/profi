@@ -105,7 +105,8 @@ describe('E2E Developer Profile Approval & Verification Lifecycle', () => {
 
     expect(registerResponse.statusCode).toBe(200);
     const registerBody = JSON.parse(registerResponse.body);
-    const devUserId = registerBody.user.id;
+    expect(registerBody.success).toBe(true);
+    const devUserId = usersTable.find(u => u.email === 'ivan@tildadev.ru').id;
     const devToken = app.jwt.sign({ id: devUserId, email: 'ivan@tildadev.ru', role: 'DEVELOPER' });
 
     // 2. DEVELOPER SUBMITS THEIR PORTFOLIO PROFILE
