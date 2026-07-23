@@ -48,9 +48,6 @@ echo -e "\n${CYAN}🗄️  Применение миграций базы дан
 # Use db push to apply schema quickly to the configured PostgreSQL db
 (cd backend && npx prisma db push)
 
-echo -e "\n${CYAN}🌱 Наполнение базы данных анкетными карточками (Seed)...${NC}"
-(cd backend && npx prisma db seed)
-
 # 4. Process frontend dependencies
 echo -e "\n${CYAN}📦 2. Установка зависимостей Nuxt 3 фронтенда...${NC}"
 npm install --prefix frontend

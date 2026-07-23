@@ -69,7 +69,6 @@ fi
 
 (cd backend && npx prisma generate)
 (cd backend && npx prisma db push || echo -e "${YELLOW}⚠️ Пропуск db push.${NC}")
-(cd backend && npx prisma db seed || echo -e "${YELLOW}⚠️ Пропуск db seed.${NC}")
 
 echo -e "\n${CYAN}🔨 Сборка бэкенда (tsc)...${NC}"
 (cd backend && npm run build)
