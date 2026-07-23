@@ -183,7 +183,7 @@ function getAvailabilityLabel(status: string) {
     <!-- HERO SECTION -->
     <section class="city-hero">
       <div class="city-badge">
-        📍 Geo SEO Region: <strong>{{ city.name }} ({{ city.country }})</strong>
+        📍 Регион: <strong>{{ city.name }} ({{ city.country }})</strong>
       </div>
       <h1>Веб-дизайнеры и разработчики Tilda в <span class="hero-gradient-text">{{ city.nameInCase }}</span></h1>
       <p>Каталог проверенных фрилансеров для выполнения проектов любой сложности в {{ city.nameInCase }}. Изучайте реальный опыт, Zero Block портфолио и выкупайте прямые контакты без посредников.</p>

@@ -104,7 +104,7 @@ function getCategoryTheme(cat: string) {
 
     <!-- Hero / Title -->
     <section class="blog-hero">
-      <div class="category-badge">SEO-Оптимизированный раздел</div>
+      <div class="category-badge">Экспертные статьи</div>
       <h1>База знаний <span class="text-gradient">fyxi</span></h1>
       <p>Статьи, советы и исследования, помогающие нанимать разработчиков и дизайнеров напрямую без посредников и переплат.</p>
     </section>
