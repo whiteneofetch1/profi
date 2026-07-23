@@ -45,7 +45,13 @@ async function bootstrap() {
 
     await fastify.register(fastifyStatic, {
       root: path.join(__dirname, '..', 'uploads'),
+      prefix: '/api/uploads/',
+    });
+
+    await fastify.register(fastifyStatic, {
+      root: path.join(__dirname, '..', 'uploads'),
       prefix: '/uploads/',
+      decorateReply: false,
     });
     
     await fastify.register(cors, {
