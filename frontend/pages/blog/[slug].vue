@@ -27,8 +27,8 @@ const { data: article } = await useFetch<any>(`${config.public.apiUrl}/blog/${en
   headers: fetchHeaders,
 });
 
-// If the article is not found or is scheduled in the future, Nuxt will return 404
-if (!article.value) {
+// If the article is not found, contains an error object, or is missing essential fields
+if (!article.value || article.value.error || !article.value.title) {
   throw createError({ statusCode: 404, statusMessage: 'Not Found', message: 'Статья не найдена', fatal: true });
 }
 

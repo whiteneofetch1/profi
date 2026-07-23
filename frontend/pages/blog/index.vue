@@ -112,7 +112,7 @@ function getCategoryTheme(cat: string) {
     <!-- Articles Grid -->
     <section class="blog-grid-container">
       <div class="articles-grid">
-        <article v-for="post in articles" :key="post.slug" class="blog-card">
+        <article v-for="post in (Array.isArray(articles) ? articles : [])" :key="post.slug" class="blog-card">
           <div class="card-meta">
             <span :class="['card-category', getCategoryTheme(post.category)]">{{ post.category }}</span>
             <span class="card-date">{{ formatDate(post.publishDate) }}</span>
