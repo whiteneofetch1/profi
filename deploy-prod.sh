@@ -80,11 +80,32 @@ rm -rf frontend/.output frontend/.nuxt frontend/.data frontend/node_modules/.cac
 echo -e "\n${CYAN}🏗️ Production-сборка Nuxt 3...${NC}"
 (cd frontend && npm run build)
 
+kill_port() {
+  local PORT=$1
+  if command -v fuser &> /dev/null; then
+    fuser -k -9 ${PORT}/tcp 2>/dev/null || true
+  fi
+  if command -v lsof &> /dev/null; then
+    local PIDS=$(lsof -t -i:${PORT} 2>/dev/null || true)
+    if [ -n "$PIDS" ]; then
+      kill -9 $PIDS 2>/dev/null || true
+    fi
+  fi
+  if command -v ss &> /dev/null; then
+    local SSPIDS=$(ss -lptn "sport = :${PORT}" 2>/dev/null | grep -oP 'pid=\K\d+' || true)
+    if [ -n "$SSPIDS" ]; then
+      kill -9 $SSPIDS 2>/dev/null || true
+    fi
+  fi
+}
+
 # 6. Start apps in PM2 and diagnose
 echo -e "\n${CYAN}🚀 3. Перезапуск процессов в PM2...${NC}"
 echo -e "${CYAN}🧹 Удаление старого конфликтующего процесса 'api' в PM2...${NC}"
 pm2 delete api 2>/dev/null || true
-sudo fuser -k -9 5010/tcp 5011/tcp 2>/dev/null || fuser -k -9 5010/tcp 5011/tcp 2>/dev/null || true
+echo -e "${CYAN}🧹 Принудительное освобождение портов 5010 и 5011 (fuser/lsof/ss)...${NC}"
+kill_port 5010
+kill_port 5011
 
 mkdir -p .pm2
 export PM2_HOME="$(pwd)/.pm2"
