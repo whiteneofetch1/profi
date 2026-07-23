@@ -120,6 +120,19 @@ echo -e "\n${GREEN}=============================================================
 echo -e "${GREEN}🎉 Успешно развернуто за ${ELAPSED} сек! Сайт fyxi.ru обновлен! ${NC}"
 echo -e "${GREEN}================================================================${NC}"
 
+echo -e "\n${CYAN}================================================================${NC}"
+echo -e "${YELLOW}📊 СВЕДЕНИЯ ДЛЯ ВХОДА И ДОСТУПА К ПЛАТФОРМЕ FYXI.RU${NC}"
+echo -e "${CYAN}----------------------------------------------------------------${NC}"
+echo -e "  🌐 ${CYAN}Главный сайт:${NC}          https://fyxi.ru"
+echo -e "  🛡️ ${CYAN}Суперадминка:${NC}           https://fyxi.ru/admin"
+echo -e "  🔑 ${CYAN}Логин суперадмина:${NC}     ${GREEN}admin@fyxi.ru${NC}"
+echo -e "  🔒 ${CYAN}Пароль суперадмина:${NC}    ${GREEN}admin123456${NC}"
+echo -e ""
+echo -e "  👤 ${CYAN}Кабинет Разработчика:${NC}   https://fyxi.ru/cabinet"
+echo -e "  ⚡ ${CYAN}Backend REST API:${NC}       http://localhost:5010 / https://fyxi.ru/api"
+echo -e "  📧 ${CYAN}SMTP Почта (Gmail):${NC}     bamblevk4@gmail.com"
+echo -e "${CYAN}================================================================${NC}"
+
 echo -e "\n${CYAN}📊 Текущий статус PM2:${NC}"
 pm2 status
 

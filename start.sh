@@ -70,9 +70,8 @@ echo -e "  • ${CYAN}Раздел статей/SEO:${NC}   http://localhost:300
 echo -e "  • ${CYAN}Админ-панель:${NC}       http://localhost:3000/admin"
 
 echo -e "\n${YELLOW}🔑 Тестовые аккаунты для входа:${NC}"
-echo -e "  • ${CYAN}Администратор:${NC}      email: ${GREEN}admin@fyxi.ru${NC}   / пароль: ${GREEN}admin_pass_2026${NC}"
-echo -e "  • ${CYAN}Разработчик:${NC}        email: ${GREEN}developer@fyxi.ru${NC} / пароль: ${GREEN}securepassword2026${NC}"
-echo -e "  • ${CYAN}UX/UI Дизайнер:${NC}     email: ${GREEN}designer@fyxi.ru${NC}  / пароль: ${GREEN}securepassword2026${NC}"
+echo -e "  • ${CYAN}Суперадминистратор:${NC}   email: ${GREEN}admin@fyxi.ru${NC}   / пароль: ${GREEN}admin123456${NC}"
+echo -e "  • ${CYAN}Разработчик:${NC}        email: ${GREEN}developer@company.ru${NC} / пароль: ${GREEN}dev123456${NC}"
 
 echo -e "\n${YELLOW}🛠️ Полезные консольные команды PM2:${NC}"
 echo -e "  • Посмотреть статус процессов:   ${CYAN}pm2 status${NC}"
