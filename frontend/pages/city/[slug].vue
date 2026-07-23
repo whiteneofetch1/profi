@@ -9,7 +9,7 @@ const slug = route.params.slug as string;
 const city = getCityBySlug(slug);
 
 if (!city) {
-  throw createError({ statusCode: 404, statusMessage: 'Город не найден в базе Geo-SEO' });
+  throw createError({ statusCode: 404, statusMessage: 'Not Found', message: 'Город не найден в базе Geo-SEO', fatal: true });
 }
 
 const cart = useCartStore();

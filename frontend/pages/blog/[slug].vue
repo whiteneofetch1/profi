@@ -11,7 +11,7 @@ const { data: article } = await useFetch<any>(`${config.public.apiUrl}/blog/${sl
 
 // If the article is not found or is scheduled in the future, Nuxt will return 404
 if (!article.value) {
-  throw showError({ statusCode: 404, statusMessage: 'Статья не найдена' });
+  throw createError({ statusCode: 404, statusMessage: 'Not Found', message: 'Статья не найдена', fatal: true });
 }
 
 // Fetch list of all published blog posts to display related ones
