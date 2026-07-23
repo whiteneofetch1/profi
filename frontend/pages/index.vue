@@ -145,16 +145,22 @@ const tiltStyle = ref<{ [key: string]: string }>({});
 
 function handleTilt(e: MouseEvent, profileId: string) {
   const card = e.currentTarget as HTMLElement;
-  const rect = card.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const width = rect.width;
-  const height = rect.height;
+  const clientX = e.clientX;
+  const clientY = e.clientY;
   
-  const rotateX = ((y / height) - 0.5) * -10;
-  const rotateY = ((x / width) - 0.5) * 10;
-  
-  tiltStyle.value[profileId] = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  requestAnimationFrame(() => {
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const width = rect.width;
+    const height = rect.height;
+    
+    const rotateX = ((y / height) - 0.5) * -10;
+    const rotateY = ((x / width) - 0.5) * 10;
+    
+    tiltStyle.value[profileId] = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  });
 }
 
 function handleResetTilt(profileId: string) {

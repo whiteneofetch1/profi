@@ -94,6 +94,16 @@ useHead({
       };
     }
 
+    if (profile.value.reviewCount && profile.value.reviewCount > 0) {
+      personSchema.aggregateRating = {
+        '@type': 'AggregateRating',
+        'ratingValue': profile.value.averageRating,
+        'reviewCount': profile.value.reviewCount,
+        'bestRating': 5,
+        'worstRating': 1
+      };
+    }
+
     const profilePageSchema = {
       '@context': 'https://schema.org',
       '@type': 'ProfilePage',
@@ -136,8 +146,8 @@ useHead({
 
 // REVIEWS & BRIEF MODAL STATES
 const reviews = ref<any[]>([]);
-const averageRating = ref(5.0);
-const reviewCount = ref(0);
+const averageRating = ref(profile.value?.averageRating || 5.0);
+const reviewCount = ref(profile.value?.reviewCount || 0);
 const isReviewModalOpen = ref(false);
 const newReview = ref({ authorName: '', rating: 5, comment: '' });
 const isSubmittingReview = ref(false);

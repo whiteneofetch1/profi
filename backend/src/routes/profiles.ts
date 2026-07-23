@@ -26,7 +26,8 @@ export default async function profileRoutes(fastify: FastifyInstance) {
               lastActive: true,
             },
           },
-          cases: { orderBy: { order: 'asc' } }
+          cases: { orderBy: { order: 'asc' } },
+          reviews: { select: { rating: true } }
         },
       });
     } else {
@@ -38,7 +39,8 @@ export default async function profileRoutes(fastify: FastifyInstance) {
               lastActive: true,
             },
           },
-          cases: { orderBy: { order: 'asc' } }
+          cases: { orderBy: { order: 'asc' } },
+          reviews: { select: { rating: true } }
         },
       });
     }
@@ -217,6 +219,12 @@ export default async function profileRoutes(fastify: FastifyInstance) {
         lastActive: profile.user.lastActive,
         createdAt: profile.createdAt,
         isUnlocked,
+        
+        // Reviews summary for SSR
+        reviewCount: profile.reviews ? profile.reviews.length : 0,
+        averageRating: profile.reviews && profile.reviews.length > 0
+          ? Number((profile.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / profile.reviews.length).toFixed(1))
+          : 0,
         
         // Gated Contacts
         contactEmail: isUnlocked ? profile.contactEmail : null,

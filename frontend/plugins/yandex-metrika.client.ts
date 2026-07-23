@@ -21,7 +21,7 @@ export default defineNuxtPlugin(() => {
       k.async=1;
       k.src=r;
       a.parentNode.insertBefore(k,a);
-    })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+    })(window, document, 'script', '/metrika.js', 'ym');
     
     (window as any).ym(110952885, 'init', {
       clickmap: true,

@@ -164,6 +164,8 @@ async function handleCheckout() {
           <span class="footer-dot">•</span>
           <NuxtLink to="/terms">Пользовательское соглашение</NuxtLink>
           <span class="footer-dot">•</span>
+          <NuxtLink to="/sitemap">Карта сайта</NuxtLink>
+          <span class="footer-dot">•</span>
           <a href="/feed.xml" target="_blank">RSS-лента</a>
           <span class="footer-dot">•</span>
           <a href="https://t.me/fyxiWeb_bot" target="_blank">Telegram Bot</a>

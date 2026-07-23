@@ -252,8 +252,14 @@ export default async function authRoutes(fastify: FastifyInstance) {
   // GET AUTHENTICATED USER
   fastify.get(
     '/me',
-    { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      try {
+        await request.jwtVerify();
+      } catch (err) {
+        // Return 200 with null user instead of throwing 401 to keep browser console clean
+        return reply.send({ user: null });
+      }
+
       const user = await fastify.prisma.user.findUnique({
         where: { id: request.user.id },
         include: {
@@ -263,7 +269,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       });
 
       if (!user) {
-        return reply.status(404).send({ error: 'User not found' });
+        return reply.send({ user: null });
       }
 
       // Update Last Active
