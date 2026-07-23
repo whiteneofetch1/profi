@@ -123,7 +123,7 @@ describe('fyxi REST API Integration Tests', () => {
       });
 
       expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body).error).toContain('already exists');
+      expect(JSON.parse(response.body).error).toContain('зарегистрирован');
     });
   });
 

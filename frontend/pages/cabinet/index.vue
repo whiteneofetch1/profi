@@ -236,7 +236,10 @@ async function handleSaveProfile() {
               </div>
             </div>
 
-            <p v-if="authError" class="auth-error">⚠️ {{ authError }}</p>
+            <div v-if="authError" class="auth-error">
+              <span class="auth-error-icon">⚠️</span>
+              <span>{{ authError }}</span>
+            </div>
 
             <button :disabled="isAuthSubmitting" type="submit" class="auth-submit-btn">
               {{ isAuthSubmitting ? 'Авторизация...' : (isLoginMode ? 'Войти' : 'Создать аккаунт') }}
@@ -497,9 +500,24 @@ async function handleSaveProfile() {
 }
 
 .auth-error {
-  color: #ef4444;
-  font-size: 0.9rem;
-  margin-top: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.88rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: 12px;
+  margin-top: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  line-height: 1.4;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+}
+
+.auth-error-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .auth-submit-btn {

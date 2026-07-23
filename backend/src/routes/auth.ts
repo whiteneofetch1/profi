@@ -25,7 +25,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       });
 
       if (existingUser) {
-        return reply.status(400).send({ error: 'User with this email already exists' });
+        return reply.status(400).send({ error: 'Пользователь с таким Email уже зарегистрирован. Попробуйте войти.' });
       }
 
       // Hash password
@@ -173,13 +173,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
       });
 
       if (!user || !user.passwordHash) {
-        return reply.status(401).send({ error: 'Invalid email or password' });
+        return reply.status(401).send({ error: 'Неверный адрес почты или пароль' });
       }
 
       // Validate password
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (!isPasswordValid) {
-        return reply.status(401).send({ error: 'Invalid email or password' });
+        return reply.status(401).send({ error: 'Неверный адрес почты или пароль' });
       }
 
       // Update Last Active
