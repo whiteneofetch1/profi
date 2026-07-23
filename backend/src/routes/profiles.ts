@@ -5,9 +5,19 @@ import { generateProfileSlug } from '../utils/translit';
 export default async function profileRoutes(fastify: FastifyInstance) {
   async function findProfileByIdOrSlug(param: string) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(param);
+    const shortIdMatch = param.match(/-([0-9a-fA-F]{8})$/);
     const repo = fastify.prisma.devProfile as any;
+    
+    let whereClause: any;
+    if (isUuid) {
+      whereClause = { OR: [{ id: param }, { slug: param }] };
+    } else if (shortIdMatch) {
+      whereClause = { OR: [{ slug: param }, { id: { startsWith: shortIdMatch[1] } }] };
+    } else {
+      whereClause = { slug: param };
+    }
+
     if (typeof repo.findFirst === 'function') {
-      const whereClause = isUuid ? { OR: [{ id: param }, { slug: param }] } : { slug: param };
       return await repo.findFirst({
         where: whereClause,
         include: {
@@ -248,6 +258,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       const profile = await fastify.prisma.devProfile.upsert({
         where: { userId: request.user.id },
         update: {
+          slug: generateProfileSlug(body.firstName, body.lastName, request.user.id),
           firstName: body.firstName,
           lastName: body.lastName,
           title: body.title,
@@ -266,6 +277,7 @@ export default async function profileRoutes(fastify: FastifyInstance) {
         },
         create: {
           userId: request.user.id,
+          slug: generateProfileSlug(body.firstName, body.lastName, request.user.id),
           firstName: body.firstName,
           lastName: body.lastName,
           title: body.title,

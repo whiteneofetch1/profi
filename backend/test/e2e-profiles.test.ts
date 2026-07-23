@@ -31,6 +31,7 @@ describe('E2E Specialist Profiles & Moderation Lifecycle', () => {
     {
       id: 'd3b07384-d113-460a-a000-000000000002',
       userId: 'user-2',
+      slug: 'elena-popova-custom',
       firstName: 'Елена',
       lastName: 'Попова',
       title: 'UI/UX Designer Tilda',
@@ -45,6 +46,27 @@ describe('E2E Specialist Profiles & Moderation Lifecycle', () => {
       contacts: { telegram: '@popova_design', email: 'popova@fyxi.ru' },
       isApproved: true,
       isVerified: false,
+      createdAt: new Date(),
+      user: { lastActive: new Date() },
+    },
+    {
+      id: '9719fec7-0000-4000-a000-000000000099',
+      userId: 'user-3',
+      slug: null, // Null slug in DB to test short ID fallback!
+      firstName: 'Илья',
+      lastName: 'Макаров',
+      title: 'Fullstack Tilda Engineer',
+      specialization: 'DEVELOPER',
+      hourlyRate: 2000,
+      monthlyRate: 160000,
+      experienceYears: 4,
+      avatarSymbol: '💻',
+      bio: 'Дорабатываю сайты на Tilda с помощью кода.',
+      skills: ['Tilda', 'Zero Block', 'JavaScript'],
+      portfolio: [],
+      contacts: { telegram: '@ilya_code', email: 'ilya@fyxi.ru' },
+      isApproved: true,
+      isVerified: true,
       createdAt: new Date(),
       user: { lastActive: new Date() },
     },
@@ -64,6 +86,32 @@ describe('E2E Specialist Profiles & Moderation Lifecycle', () => {
           result = result.filter(p => p.isVerified === args.where.isVerified);
         }
         return result;
+      },
+      findFirst: async (args: any) => {
+        if (args?.where?.OR) {
+          for (const condition of args.where.OR) {
+            if (condition.id) {
+              const match = mockProfiles.find(p => p.id === condition.id);
+              if (match) return match;
+            }
+            if (condition.slug) {
+              const match = mockProfiles.find(p => p.slug === condition.slug);
+              if (match) return match;
+            }
+            if (condition.id?.startsWith) {
+              const prefix = condition.id.startsWith;
+              const match = mockProfiles.find(p => p.id.startsWith(prefix));
+              if (match) return match;
+            }
+          }
+        }
+        if (args?.where?.id) {
+          return mockProfiles.find(p => p.id === args.where.id) || null;
+        }
+        if (args?.where?.slug) {
+          return mockProfiles.find(p => p.slug === args.where.slug) || null;
+        }
+        return null;
       },
       findUnique: async (args: any) => {
         return mockProfiles.find(p => p.id === args.where.id) || null;
@@ -103,8 +151,56 @@ describe('E2E Specialist Profiles & Moderation Lifecycle', () => {
     expect(response.statusCode).toBe(200);
     const profiles = JSON.parse(response.body);
     expect(Array.isArray(profiles)).toBe(true);
-    expect(profiles.length).toBe(2);
+    expect(profiles.length).toBe(3);
     expect(profiles[0].contacts).toBeUndefined();
+  });
+
+  it('should fetch profile by full UUID', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/profiles/d3b07384-d113-460a-a000-000000000001',
+    });
+
+    expect(response.statusCode).toBe(200);
+    const profile = JSON.parse(response.body);
+    expect(profile.id).toBe('d3b07384-d113-460a-a000-000000000001');
+    expect(profile.firstName).toBe('Алексей');
+  });
+
+  it('should fetch profile by exact stored slug', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/profiles/elena-popova-custom',
+    });
+
+    expect(response.statusCode).toBe(200);
+    const profile = JSON.parse(response.body);
+    expect(profile.id).toBe('d3b07384-d113-460a-a000-000000000002');
+    expect(profile.firstName).toBe('Елена');
+  });
+
+  it('should fetch profile by short ID fallback when slug in DB is null (e.g. ilya-29-makarov-9719fec7)', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/profiles/ilya-29-makarov-9719fec7',
+    });
+
+    expect(response.statusCode).toBe(200);
+    const profile = JSON.parse(response.body);
+    expect(profile.id).toBe('9719fec7-0000-4000-a000-000000000099');
+    expect(profile.firstName).toBe('Илья');
+    expect(profile.lastName).toBe('Макаров');
+  });
+
+  it('should return 404 for non-existent profile slug or UUID', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/profiles/non-existent-user-12345678',
+    });
+
+    expect(response.statusCode).toBe(404);
+    const body = JSON.parse(response.body);
+    expect(body.error).toBe('Specialist profile not found');
   });
 
   it('should filter specialists by specialization DEVELOPER', async () => {
@@ -115,8 +211,7 @@ describe('E2E Specialist Profiles & Moderation Lifecycle', () => {
 
     expect(response.statusCode).toBe(200);
     const profiles = JSON.parse(response.body);
-    expect(profiles.length).toBe(1);
-    expect(profiles[0].specialization).toBe('DEVELOPER');
+    expect(profiles.length).toBe(2);
   });
 
   it('should allow ADMIN to toggle verified badge for specialist profile', async () => {

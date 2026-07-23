@@ -73,18 +73,6 @@ export default defineNuxtConfig({
         { rel: 'preload', as: 'style', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap', media: 'print', onload: "this.media='all'" },
         { rel: 'alternate', type: 'application/rss+xml', title: 'fyxi.ru RSS Feed', href: '/feed.xml' }
-      ],
-      script: [
-        {
-          innerHTML: `(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110952885', 'ym');ym(110952885, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});`,
-          async: true,
-          defer: true
-        }
-      ],
-      noscript: [
-        {
-          innerHTML: '<img src="https://mc.yandex.ru/watch/110952885" style="position:absolute; left:-9999px;" alt="" />'
-        }
       ]
     }
   },
