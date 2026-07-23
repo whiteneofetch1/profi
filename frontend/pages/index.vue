@@ -189,7 +189,7 @@ useSeoMeta({
   twitterTitle: 'Каталог разработчиков и дизайнеров Tilda | fyxi',
   twitterDescription: 'Изучайте портфолио и опыт, покупайте прямые контакты специалистов напрямую на fyxi.ru.',
   twitterImage: '/og-image.jpg',
-  keywords: 'fyxi, IT подбор, фриланс, веб-дизайнеры Tilda, разработчики Vue 3, база специалистов, контакты фрилансеров, заказать сайт на тильде, zero block'
+  keywords: 'fyxi, IT подбор, фриланс, веб-дизайнеры Tilda, разработчики Zero Block, база специалистов, контакты фрилансеров, заказать сайт на тильде, zero block'
 });
 
 const websiteSchema = computed(() => ({
@@ -325,7 +325,7 @@ function navigateToProfile(event: MouseEvent, profileId: string) {
           type="text" 
           class="search-input" 
           aria-label="Поиск по имени, стеку или навыкам"
-          placeholder="Поиск по имени, стеку или навыкам (например: Vue, Figma)..."
+          placeholder="Поиск по имени, стеку или навыкам (например: Zero Block, Figma, Tilda CC)..."
         />
       </div>
 

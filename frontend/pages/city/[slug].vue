@@ -75,7 +75,7 @@ useHead({
             'name': city.country
           }
         },
-        'description': `Услуги профессиональной разработки сайтов на платформах Tilda Zero Block и Vue 3 в ${city.nameInCase}.`
+        'description': `Услуги профессиональной разработки и дизайна сайтов на платформе Tilda Zero Block в ${city.nameInCase}.`
       })
     },
     {
@@ -198,7 +198,7 @@ function getAvailabilityLabel(status: string) {
           type="text" 
           class="search-input" 
           aria-label="Поиск специалистов в городе"
-          :placeholder="`Поиск специалистов в городе ${city.name} (Vue, Figma, Zero Block)...`"
+          :placeholder="`Поиск специалистов в городе ${city.name} (Tilda, Figma, Zero Block)...`"
         />
       </div>
 
