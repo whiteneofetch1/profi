@@ -99,28 +99,43 @@ async function handleCheckout() {
         <NuxtLink to="/" class="logo" @click="isMobileMenuOpen = false">fyxi<span class="logo-dot"></span></NuxtLink>
         
         <!-- Mobile Burger Toggle Button -->
-        <button class="mobile-burger-btn" @click="isMobileMenuOpen = !isMobileMenuOpen" aria-label="Toggle Navigation Menu">
+        <button 
+          :class="['mobile-burger-btn', { open: isMobileMenuOpen }]" 
+          @click="isMobileMenuOpen = !isMobileMenuOpen" 
+          aria-label="Toggle Navigation Menu"
+        >
           <span v-if="!isMobileMenuOpen">☰</span>
           <span v-else>✕</span>
         </button>
 
         <nav class="desktop-nav" :class="{ 'mobile-menu-open': isMobileMenuOpen }">
-          <NuxtLink to="/" active-class="active" @click="isMobileMenuOpen = false">Каталог</NuxtLink>
-          <NuxtLink to="/blog" active-class="active" @click="isMobileMenuOpen = false">Статьи</NuxtLink>
+          <NuxtLink to="/" class="nav-link-item" active-class="active" @click="isMobileMenuOpen = false">
+            <span class="nav-link-icon">🗂️</span> Каталог
+          </NuxtLink>
+          <NuxtLink to="/blog" class="nav-link-item" active-class="active" @click="isMobileMenuOpen = false">
+            <span class="nav-link-icon">📝</span> Статьи
+          </NuxtLink>
           
           <!-- Admin Panel Button -->
-          <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-btn admin-link" active-class="active" @click="isMobileMenuOpen = false">Админка</NuxtLink>
+          <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-btn admin-link nav-link-item" active-class="active" @click="isMobileMenuOpen = false">
+            <span class="nav-link-icon">⚡️</span> Админка
+          </NuxtLink>
           
           <!-- Specialist Cabinet Button -->
-          <NuxtLink v-if="auth.isDeveloper" to="/cabinet" class="nav-btn cabinet-link" active-class="active" @click="isMobileMenuOpen = false">Мой профиль</NuxtLink>
+          <NuxtLink v-if="auth.isDeveloper" to="/cabinet" class="nav-btn cabinet-link nav-link-item" active-class="active" @click="isMobileMenuOpen = false">
+            <span class="nav-link-icon">👤</span> Мой профиль
+          </NuxtLink>
           
           <!-- Auth session buttons -->
-          <template v-if="auth.isAuthenticated">
-            <span class="session-email">{{ auth.user?.email }}</span>
+          <div v-if="auth.isAuthenticated" class="session-user-box">
+            <div class="user-info">
+              <span class="user-avatar-badge">👤</span>
+              <span class="session-email">{{ auth.user?.email }}</span>
+            </div>
             <button class="logout-btn" @click="auth.logout(); isMobileMenuOpen = false;">Выйти</button>
-          </template>
+          </div>
           <template v-else>
-            <NuxtLink to="/cabinet" class="login-nav-btn" @click="isMobileMenuOpen = false">Разработчикам</NuxtLink>
+            <NuxtLink to="/cabinet" class="login-nav-btn nav-link-item" @click="isMobileMenuOpen = false">Разработчикам</NuxtLink>
           </template>
 
           <!-- Shopping Cart trigger -->
@@ -293,12 +308,22 @@ async function handleCheckout() {
   display: none;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-glow);
-  color: #fff;
+  color: var(--text-primary);
   font-size: 1.3rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   cursor: pointer;
   line-height: 1;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.mobile-burger-btn:hover, .mobile-burger-btn.open {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+  color: var(--accent-cyan);
 }
 
 @media (max-width: 768px) {
@@ -319,31 +344,118 @@ async function handleCheckout() {
     top: 100%;
     left: 0;
     right: 0;
-    background: #090d16;
-    border-bottom: 1px solid var(--border-glow);
+    background: rgba(11, 10, 20, 0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.25);
     flex-direction: column;
-    padding: 1.5rem;
-    gap: 1.2rem;
-    align-items: flex-start;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+    padding: 1.5rem 1.25rem;
+    gap: 1rem;
+    align-items: stretch;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.95), 0 0 25px rgba(139, 92, 246, 0.15);
     z-index: 100;
   }
 
   .desktop-nav.mobile-menu-open {
     display: flex;
+    animation: mobileMenuSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nav-link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .nav-link-item:hover, .nav-link-item.active {
+    background: rgba(6, 182, 212, 0.1);
+    border-color: var(--accent-cyan);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+  }
+
+  .session-user-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glow);
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .user-avatar-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--gradient-cyber);
+    border-radius: 50%;
+    font-size: 0.9rem;
   }
 
   .session-email {
-    border-right: none;
-    padding-right: 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-glow);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  .logout-btn {
     width: 100%;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.7rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #fff;
   }
 
   .cart-btn {
     width: 100%;
     justify-content: center;
+    padding: 0.9rem 1.25rem;
+    border-radius: 14px;
+    background: var(--gradient-cyber);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  }
+}
+
+@keyframes mobileMenuSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
