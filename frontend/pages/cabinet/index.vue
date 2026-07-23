@@ -16,6 +16,23 @@ const authError = ref('');
 const registrationMessage = ref('');
 const isAuthSubmitting = ref(false);
 
+// Tabs & Dashboard stats
+const activeTab = ref<'profile' | 'briefs' | 'reviews' | 'security'>('profile');
+const briefs = ref<any[]>([]);
+const reviews = ref<any[]>([]);
+const stats = ref<{ unlocksCount: number; briefsCount: number; reviewsCount: number; averageRating: number }>({
+  unlocksCount: 0,
+  briefsCount: 0,
+  reviewsCount: 0,
+  averageRating: 5.0,
+});
+
+// Security tab state
+const currentPassword = ref('');
+const newPassword = ref('');
+const passwordError = ref('');
+const isPasswordSaving = ref(false);
+
 // Developer Profile form states
 const firstName = ref('');
 const lastName = ref('');
@@ -60,7 +77,55 @@ onMounted(async () => {
 
   await auth.fetchUser();
   populateForm();
+  await loadDeveloperDashboardData();
 });
+
+async function loadDeveloperDashboardData() {
+  if (!auth.isDeveloper) return;
+  const config = useRuntimeConfig();
+  try {
+    const [statsRes, briefsRes, reviewsRes] = await Promise.all([
+      $fetch<any>(`${config.public.apiUrl}/profiles/my-stats`),
+      $fetch<any>(`${config.public.apiUrl}/profiles/my-briefs`),
+      $fetch<any>(`${config.public.apiUrl}/profiles/my-reviews`),
+    ]);
+    if (statsRes) stats.value = statsRes;
+    if (briefsRes?.briefs) briefs.value = briefsRes.briefs;
+    if (reviewsRes?.reviews) reviews.value = reviewsRes.reviews;
+  } catch (e) {
+    // Ignore error
+  }
+}
+
+async function handleChangePassword() {
+  passwordError.value = '';
+  if (!currentPassword.value || !newPassword.value) {
+    passwordError.value = 'Заполните оба поля пароля';
+    return;
+  }
+  if (newPassword.value.length < 6) {
+    passwordError.value = 'Новый пароль должен содержать минимум 6 символов';
+    return;
+  }
+  isPasswordSaving.value = true;
+  const config = useRuntimeConfig();
+  try {
+    await $fetch(`${config.public.apiUrl}/auth/change-password`, {
+      method: 'POST',
+      body: {
+        currentPassword: currentPassword.value,
+        newPassword: newPassword.value,
+      },
+    });
+    if (showToast) showToast('Пароль успешно изменён!', 'success');
+    currentPassword.value = '';
+    newPassword.value = '';
+  } catch (err: any) {
+    passwordError.value = err.data?.error || 'Ошибка при изменении пароля';
+  } finally {
+    isPasswordSaving.value = false;
+  }
+}
 
 function populateForm() {
   if (auth.user && auth.user.role === 'DEVELOPER' && auth.user.devProfile) {
@@ -263,15 +328,63 @@ async function handleSaveProfile() {
         </div>
       </template>
 
-      <!-- 3. DEVELOPER CABINET (PROFILE EDITOR) -->
+      <!-- 3. DEVELOPER CABINET (PROFILE EDITOR & DASHBOARD) -->
       <template v-else-if="auth.isDeveloper">
         <div class="profile-editor-box">
           <div class="editor-header">
             <div>
-              <h2>Анкета IT-специалиста</h2>
-              <p>Заполните форму, чтобы ваши навыки появились в поиске заказчиков.</p>
+              <h2>Кабинет IT-специалиста</h2>
+              <p>Управляйте анкетой, просмотрите входящие брифы и отзывы заказчиков.</p>
             </div>
             <button class="logout-btn" @click="handleLogout">Выйти 🚪</button>
+          </div>
+
+          <!-- KPI Stats Bar -->
+          <div class="kpi-stats-grid">
+            <div class="kpi-card">
+              <span class="kpi-icon">🔓</span>
+              <div class="kpi-info">
+                <span class="kpi-value">{{ stats.unlocksCount }}</span>
+                <span class="kpi-label">Выкупов контактов</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-icon">📋</span>
+              <div class="kpi-info">
+                <span class="kpi-value">{{ stats.briefsCount }}</span>
+                <span class="kpi-label">Получено брифов</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-icon">⭐️</span>
+              <div class="kpi-info">
+                <span class="kpi-value">{{ stats.averageRating }} / 5.0</span>
+                <span class="kpi-label">Средний рейтинг</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-icon">💬</span>
+              <div class="kpi-info">
+                <span class="kpi-value">{{ stats.reviewsCount }}</span>
+                <span class="kpi-label">Всего отзывов</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Bar Navigation -->
+          <div class="dashboard-tabs">
+            <button :class="['tab-btn', { active: activeTab === 'profile' }]" @click="activeTab = 'profile'">
+              👤 Моя Анкета
+            </button>
+            <button :class="['tab-btn', { active: activeTab === 'briefs' }]" @click="activeTab = 'briefs'">
+              📋 Входящие Брифы <span v-if="briefs.length" class="tab-badge">{{ briefs.length }}</span>
+            </button>
+            <button :class="['tab-btn', { active: activeTab === 'reviews' }]" @click="activeTab = 'reviews'">
+              ⭐️ Мои Отзывы <span v-if="reviews.length" class="tab-badge">{{ reviews.length }}</span>
+            </button>
+            <button :class="['tab-btn', { active: activeTab === 'security' }]" @click="activeTab = 'security'">
+              🔒 Безопасность
+            </button>
           </div>
 
           <!-- Email Verification Banner -->
@@ -301,6 +414,9 @@ async function handleSaveProfile() {
               </NuxtLink>
             </div>
           </div>
+
+          <!-- TAB 1: PROFILE EDITOR -->
+          <div v-if="activeTab === 'profile'">
 
           <form @submit.prevent="handleSaveProfile">
             <!-- AVATAR & BASIC DETAILS -->
@@ -413,6 +529,90 @@ async function handleSaveProfile() {
               {{ isProfileSaving ? 'Сохранение данных...' : 'Сохранить анкету' }}
             </button>
           </form>
+          </div>
+
+          <!-- TAB 2: INCOMING BRIEFS -->
+          <div v-else-if="activeTab === 'briefs'" class="tab-content-box">
+            <h3 class="section-subtitle">📋 Входящие Брифы на проекты</h3>
+            <p class="section-desc">Здесь отображаются заявки и ТЗ, отправленные вам заказчиками через платформу.</p>
+
+            <div v-if="briefs.length === 0" class="empty-tab-state">
+              <span class="empty-icon">📮</span>
+              <p>У вас пока нет входящих проектов.</p>
+              <span class="empty-sub">Убедитесь, что ваша анкета заполнена и опубликована в каталоге.</span>
+            </div>
+
+            <div v-else class="briefs-list">
+              <div v-for="b in briefs" :key="b.id" class="brief-card">
+                <div class="brief-header">
+                  <div>
+                    <h4 class="brief-client">{{ b.clientName }}</h4>
+                    <a :href="`mailto:${b.clientEmail}`" class="brief-email">📧 {{ b.clientEmail }}</a>
+                  </div>
+                  <span class="brief-date">{{ new Date(b.createdAt).toLocaleDateString('ru-RU') }}</span>
+                </div>
+                <div class="brief-tags-row">
+                  <span class="brief-tag">🏷 {{ b.projectType }}</span>
+                  <span class="brief-tag budget">💰 {{ b.budget }}</span>
+                  <span class="brief-tag deadline">⏳ {{ b.deadline }}</span>
+                </div>
+                <p class="brief-description">{{ b.description }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: REVIEWS -->
+          <div v-else-if="activeTab === 'reviews'" class="tab-content-box">
+            <h3 class="section-subtitle">⭐️ Отзывы заказчиков</h3>
+            <p class="section-desc">Оценки и отзывы от клиентов, выкупивших ваши прямые контакты.</p>
+
+            <div v-if="reviews.length === 0" class="empty-tab-state">
+              <span class="empty-icon">💬</span>
+              <p>Пока нет отзывов от заказчиков.</p>
+              <span class="empty-sub">Первые отзывы появятся после совместной работы с клиентами платформы.</span>
+            </div>
+
+            <div v-else class="reviews-list">
+              <div v-for="r in reviews" :key="r.id" class="review-card">
+                <div class="review-header">
+                  <div>
+                    <span class="reviewer-name">{{ r.clientName || 'Заказчик' }}</span>
+                    <div class="review-stars">
+                      <span v-for="star in 5" :key="star" :class="['star', { filled: star <= r.rating }]">★</span>
+                    </div>
+                  </div>
+                  <span class="review-date">{{ new Date(r.createdAt).toLocaleDateString('ru-RU') }}</span>
+                </div>
+                <p v-if="r.comment" class="review-comment">"{{ r.comment }}"</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: SECURITY -->
+          <div v-else-if="activeTab === 'security'" class="tab-content-box">
+            <h3 class="section-subtitle">🔒 Смена Пароля</h3>
+            <p class="section-desc">Обновите ваш пароль от личного кабинета для безопасности.</p>
+
+            <form @submit.prevent="handleChangePassword" class="security-form">
+              <div class="form-group">
+                <label>Текущий пароль</label>
+                <input v-model="currentPassword" type="password" class="form-input" required placeholder="••••••••" />
+              </div>
+              <div class="form-group">
+                <label>Новый пароль (минимум 6 символов)</label>
+                <input v-model="newPassword" type="password" class="form-input" required placeholder="••••••••" />
+              </div>
+
+              <div v-if="passwordError" class="auth-error">
+                <span class="auth-error-icon">⚠️</span>
+                <span>{{ passwordError }}</span>
+              </div>
+
+              <button :disabled="isPasswordSaving" type="submit" class="save-profile-btn" style="margin-top: 1.5rem;">
+                {{ isPasswordSaving ? 'Обновление пароля...' : 'Обновить пароль' }}
+              </button>
+            </form>
+          </div>
         </div>
       </template>
 
@@ -760,5 +960,238 @@ async function handleSaveProfile() {
   color: var(--text-muted);
   margin-top: 0.3rem;
   display: block;
+}
+
+/* --- KPI STATS GRID --- */
+.kpi-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glow);
+  padding: 1.2rem;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.kpi-icon {
+  font-size: 1.8rem;
+}
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* --- DASHBOARD TABS --- */
+.dashboard-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-glow);
+  padding-bottom: 0.75rem;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+  color: #fff;
+  background: var(--gradient-cyber);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.tab-badge {
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+/* --- TAB CONTENT & BRIEFS / REVIEWS LIST --- */
+.tab-content-box {
+  padding-top: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.3rem;
+  margin-bottom: 0.3rem;
+  color: #fff;
+}
+
+.section-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.empty-tab-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-glow);
+  border-radius: 16px;
+  margin-top: 1rem;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.empty-tab-state p {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #f1f5f9;
+  margin-bottom: 0.3rem;
+}
+
+.empty-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* Briefs & Reviews Cards */
+.briefs-list, .reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.brief-card, .review-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glow);
+  padding: 1.5rem;
+  border-radius: 16px;
+}
+
+.brief-header, .review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.8rem;
+}
+
+.brief-client {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 0.2rem;
+}
+
+.brief-email {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.brief-date, .review-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.brief-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.brief-tag {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c084fc;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+}
+
+.brief-tag.budget {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.brief-tag.deadline {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+
+.brief-description {
+  font-size: 0.92rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.reviewer-name {
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.review-stars {
+  display: flex;
+  gap: 0.2rem;
+  margin-top: 0.3rem;
+}
+
+.star {
+  color: #475569;
+  font-size: 1.1rem;
+}
+
+.star.filled {
+  color: #f59e0b;
+}
+
+.review-comment {
+  font-style: italic;
+  color: #e2e8f0;
+  font-size: 0.92rem;
+  margin-top: 0.6rem;
+}
+
+.security-form {
+  max-width: 450px;
 }
 </style>

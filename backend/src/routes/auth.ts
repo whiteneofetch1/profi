@@ -352,4 +352,42 @@ export default async function authRoutes(fastify: FastifyInstance) {
       reply.send({ success: true, message: 'Пароль успешно обновлен! Теперь вы можете войти с новым паролем.' });
     }
   );
+
+  // CHANGE PASSWORD (AUTHENTICATED)
+  fastify.post(
+    '/change-password',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        body: Type.Object({
+          currentPassword: Type.String(),
+          newPassword: Type.String({ minLength: 6 }),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const { currentPassword, newPassword } = request.body as any;
+
+      const user = await fastify.prisma.user.findUnique({
+        where: { id: request.user.id },
+      });
+
+      if (!user || !user.passwordHash) {
+        return reply.status(404).send({ error: 'Пользователь не найден' });
+      }
+
+      const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isValid) {
+        return reply.status(400).send({ error: 'Неверный текущий пароль' });
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+      await fastify.prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash },
+      });
+
+      reply.send({ success: true, message: 'Пароль успешно изменён' });
+    }
+  );
 }

@@ -443,6 +443,21 @@ export default async function profileRoutes(fastify: FastifyInstance) {
         where: { id: { in: body.devProfileIds } },
       });
 
+      // Save Project Brief in DB for each targeted developer
+      for (const profile of profiles) {
+        await fastify.prisma.projectBrief.create({
+          data: {
+            devProfileId: profile.id,
+            clientName: body.clientName,
+            clientEmail: body.clientEmail,
+            projectType: body.projectType,
+            budget: body.budget,
+            deadline: body.deadline,
+            description: body.description + (body.figmaLink ? `\n\nFigma: ${body.figmaLink}` : ''),
+          },
+        }).catch(err => fastify.log.error(err));
+      }
+
       const briefText = `📋 **Новый бриф на проект с fyxi.ru!**\n\n` +
         `👤 **Заказчик:** ${body.clientName} (${body.clientEmail})\n` +
         `🏷 **Тип проекта:** ${body.projectType}\n` +
@@ -471,7 +486,104 @@ export default async function profileRoutes(fastify: FastifyInstance) {
       `;
       sendEmailNotification(body.clientEmail, `Бриф по проекту "${body.projectType}" отправлен | fyxi.ru`, emailHtml).catch(() => {});
 
-      reply.send({ success: true, message: 'Ваш бриф успешно отправлен выбранным специалистам!' });
+      reply.send({ success: true, message: 'Бриф успешно отправлен специалистам' });
+    }
+  );
+
+  // 8. GET INCOMING BRIEFS FOR LOGGED-IN DEVELOPER
+  fastify.get(
+    '/my-briefs',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      if (request.user.role !== 'DEVELOPER') {
+        return reply.status(403).send({ error: 'Только специалисты могут просматривать входящие брифы' });
+      }
+
+      const devProfile = await fastify.prisma.devProfile.findUnique({
+        where: { userId: request.user.id },
+      });
+
+      if (!devProfile) {
+        return reply.send({ briefs: [] });
+      }
+
+      const briefs = await fastify.prisma.projectBrief.findMany({
+        where: { devProfileId: devProfile.id },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      reply.send({ briefs });
+    }
+  );
+
+  // 9. GET REVIEWS FOR LOGGED-IN DEVELOPER
+  fastify.get(
+    '/my-reviews',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      if (request.user.role !== 'DEVELOPER') {
+        return reply.status(403).send({ error: 'Только специалисты могут просматривать свои отзывы' });
+      }
+
+      const devProfile = await fastify.prisma.devProfile.findUnique({
+        where: { userId: request.user.id },
+      });
+
+      if (!devProfile) {
+        return reply.send({ reviews: [], averageRating: 5.0, count: 0 });
+      }
+
+      const reviews = await fastify.prisma.review.findMany({
+        where: { devProfileId: devProfile.id },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const averageRating = reviews.length > 0
+        ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
+        : 5.0;
+
+      reply.send({ reviews, averageRating, count: reviews.length });
+    }
+  );
+
+  // 10. GET DEVELOPER STATS DASHBOARD
+  fastify.get(
+    '/my-stats',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      if (request.user.role !== 'DEVELOPER') {
+        return reply.status(403).send({ error: 'Только специалисты могут смотреть статистику' });
+      }
+
+      const devProfile = await fastify.prisma.devProfile.findUnique({
+        where: { userId: request.user.id },
+        include: {
+          reviews: true,
+          unlockedItems: true,
+          briefs: true,
+        },
+      });
+
+      if (!devProfile) {
+        return reply.send({
+          unlocksCount: 0,
+          briefsCount: 0,
+          reviewsCount: 0,
+          averageRating: 5.0,
+        });
+      }
+
+      const reviewsCount = devProfile.reviews.length;
+      const averageRating = reviewsCount > 0
+        ? Number((devProfile.reviews.reduce((acc, r) => acc + r.rating, 0) / reviewsCount).toFixed(1))
+        : 5.0;
+
+      reply.send({
+        unlocksCount: devProfile.unlockedItems.length,
+        briefsCount: devProfile.briefs.length,
+        reviewsCount,
+        averageRating,
+      });
     }
   );
 }

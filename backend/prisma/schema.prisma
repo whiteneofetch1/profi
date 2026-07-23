@@ -60,6 +60,27 @@ model DevProfile {
   createdAt       DateTime     @default(now())
   unlockedItems   UnlockedProfile[]
   reviews         Review[]
+  briefs          ProjectBrief[]
+}
+
+model ProjectBrief {
+  id           String      @id @default(uuid())
+  devProfileId String
+  devProfile   DevProfile  @relation(fields: [devProfileId], references: [id], onDelete: Cascade)
+  clientName   String
+  clientEmail  String
+  projectType  String
+  budget       String
+  deadline     String
+  description  String      @db.Text
+  status       BriefStatus @default(NEW)
+  createdAt    DateTime    @default(now())
+}
+
+enum BriefStatus {
+  NEW
+  READ
+  ARCHIVED
 }
 
 enum SpecType {

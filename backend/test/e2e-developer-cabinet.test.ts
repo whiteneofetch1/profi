@@ -51,10 +51,23 @@ describe('E2E Worker/Developer Cabinet Lifecycle Tests', () => {
         if (args?.where?.isApproved === true) {
           list = list.filter(p => p.isApproved === true);
         }
+        if (args?.where?.id?.in) {
+          list = list.filter(p => args.where.id.in.includes(p.id));
+        }
         return list;
       },
       findUnique: async (args: any) => {
-        return profilesTable.find(p => p.id === args.where.id || p.userId === args.where.userId) || null;
+        const p = profilesTable.find(p => p.id === args.where.id || p.userId === args.where.userId);
+        if (!p) return null;
+        if (args?.include) {
+          return {
+            ...p,
+            reviews: [],
+            unlockedItems: [],
+            briefs: [],
+          };
+        }
+        return p;
       },
       upsert: async (args: any) => {
         const userId = args.where.userId;
@@ -85,6 +98,13 @@ describe('E2E Worker/Developer Cabinet Lifecycle Tests', () => {
       create: async (args: any) => ({ id: 'cp-1', ...args.data }),
     },
     unlockedProfile: {
+      findMany: async () => [],
+    },
+    projectBrief: {
+      create: async (args: any) => ({ id: 'pb-1', createdAt: new Date(), ...args.data }),
+      findMany: async () => [],
+    },
+    review: {
       findMany: async () => [],
     },
   };
@@ -232,7 +252,36 @@ describe('E2E Worker/Developer Cabinet Lifecycle Tests', () => {
     expect(catalog.length).toBe(1);
     expect(catalog[0].firstName).toBe('Артем');
 
-    // 8. Worker Logs Out
+    // 8. Developer checks their dashboard stats & briefs
+    const statsRes = await app.inject({
+      method: 'GET',
+      url: '/profiles/my-stats',
+      headers: { Cookie: `token=${token}` },
+    });
+    expect(statsRes.statusCode).toBe(200);
+    expect(JSON.parse(statsRes.body).averageRating).toBe(5);
+
+    const briefsRes = await app.inject({
+      method: 'GET',
+      url: '/profiles/my-briefs',
+      headers: { Cookie: `token=${token}` },
+    });
+    expect(briefsRes.statusCode).toBe(200);
+
+    // 9. Developer changes password
+    const pwdRes = await app.inject({
+      method: 'POST',
+      url: '/auth/change-password',
+      headers: { Cookie: `token=${token}` },
+      payload: {
+        currentPassword: 'workerpassword2026',
+        newPassword: 'newsecurepassword2026',
+      },
+    });
+    expect(pwdRes.statusCode).toBe(200);
+    expect(JSON.parse(pwdRes.body).message).toContain('успешно');
+
+    // 10. Worker Logs Out
     const logoutRes = await app.inject({
       method: 'POST',
       url: '/auth/logout',

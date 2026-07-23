@@ -61,6 +61,9 @@ describe('E2E Specialist Reviews & Project Brief Dispatch Lifecycle', () => {
       },
       findMany: async () => mockReviews,
     },
+    projectBrief: {
+      create: async (args: any) => ({ id: `pb-${Date.now()}`, ...args.data }),
+    },
   };
 
   beforeAll(async () => {
