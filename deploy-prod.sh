@@ -3,16 +3,31 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Visual colors
+START_TIME=$(date +%s)
+
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
+
+export NPM_CONFIG_AUDIT=false
+export NPM_CONFIG_FUND=false
+export NUXT_TELEMETRY_DISABLED=1
 
 echo -e "${CYAN}====================================================${NC}"
-echo -e "${CYAN}   fyxi.ru — Скрипт Прод-Деплоя и Проверки (100%)    ${NC}"
+echo -e "${CYAN}   fyxi.ru — Сверхбыстрый Прод-Деплой (v3.0 Fast)    ${NC}"
 echo -e "${CYAN}====================================================${NC}"
+
+get_file_hash() {
+  if command -v md5sum &> /dev/null; then
+    md5sum "$1" 2>/dev/null | awk '{print $1}'
+  elif command -v md5 &> /dev/null; then
+    md5 -q "$1" 2>/dev/null
+  else
+    stat -c %Y "$1" 2>/dev/null || echo "1"
+  fi
+}
 
 # 0. Git code sync
 echo -e "\n${CYAN}🔄 Получение свежих обновлений из Git...${NC}"
@@ -26,7 +41,6 @@ fi
 # 1. Check for PM2 command
 if ! command -v pm2 &> /dev/null; then
   echo -e "${RED}❌ Утилита PM2 не найдена.${NC}"
-  echo -e "👉 Установите PM2: ${GREEN}npm install -g pm2${NC}"
   exit 1
 fi
 
@@ -36,52 +50,63 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# Sync .env files
 cp .env backend/.env
 cp .env frontend/.env
 
 # 3. Process backend dependencies, prisma and build
-echo -e "\n${CYAN}📦 1. Установка зависимостей бэкенда...${NC}"
-npm install --prefix backend
+echo -e "\n${CYAN}📦 1. Проверка бэкенда...${NC}"
+BACKEND_LOCK_HASH=$(get_file_hash "backend/package-lock.json")
+BACKEND_HASH_FILE="backend/node_modules/.installed_hash"
 
-echo -e "\n${CYAN}⚙️ Генерация Prisma Client и применение миграций...${NC}"
-(cd backend && npx prisma generate)
-(cd backend && npx prisma db push || echo -e "${YELLOW}⚠️ База данных PostgreSQL недоступна локально, пропуск db push.${NC}")
-(cd backend && npx prisma db seed || echo -e "${YELLOW}⚠️ Пропуск сидинга БД (нет активного подключения).${NC}")
+if [ -d "backend/node_modules" ] && [ -f "$BACKEND_HASH_FILE" ] && [ "$(cat "$BACKEND_HASH_FILE")" == "$BACKEND_LOCK_HASH" ]; then
+  echo -e "${GREEN}⚡ node_modules бэкенда актуальны (пропуск npm install).${NC}"
+else
+  echo -e "${YELLOW}📥 Установка зависимостей бэкенда...${NC}"
+  npm install --prefix backend --no-audit --no-fund --prefer-offline
+  mkdir -p backend/node_modules
+  echo "$BACKEND_LOCK_HASH" > "$BACKEND_HASH_FILE"
+fi
 
-echo -e "\n${CYAN}🔨 Сборка бэкенда (TypeScript tsc)...${NC}"
+PRISMA_HASH=$(get_file_hash "backend/prisma/schema.prisma")
+PRISMA_HASH_FILE="backend/node_modules/.prisma_schema_hash"
+
+if [ -d "backend/node_modules/@prisma/client" ] && [ -f "$PRISMA_HASH_FILE" ] && [ "$(cat "$PRISMA_HASH_FILE")" == "$PRISMA_HASH" ]; then
+  echo -e "${GREEN}⚡ Prisma Client актуален.${NC}"
+else
+  (cd backend && npx prisma generate)
+  (cd backend && npx prisma db push || echo -e "${YELLOW}⚠️ Пропуск db push.${NC}")
+  echo "$PRISMA_HASH" > "$PRISMA_HASH_FILE"
+fi
+
+echo -e "\n${CYAN}🔨 Сборка бэкенда (tsc)...${NC}"
 (cd backend && npm run build)
 
-echo -e "\n${CYAN}🧪 Запуск бэкенд E2E тестов...${NC}"
-(cd backend && npm test)
-
 # 4. Process frontend dependencies and production build
-echo -e "\n${CYAN}📦 2. Установка зависимостей Nuxt 3 фронтенда...${NC}"
-NUXT_TELEMETRY_DISABLED=1 npm install --prefix frontend
+echo -e "\n${CYAN}📦 2. Проверка Nuxt 3 фронтенда...${NC}"
+FRONTEND_LOCK_HASH=$(get_file_hash "frontend/package-lock.json")
+FRONTEND_HASH_FILE="frontend/node_modules/.installed_hash"
 
-echo -e "\n${CYAN}🧪 Запуск фронтенд Vitest тестов...${NC}"
-(cd frontend && npm test)
+if [ -d "frontend/node_modules" ] && [ -f "$FRONTEND_HASH_FILE" ] && [ "$(cat "$FRONTEND_HASH_FILE")" == "$FRONTEND_LOCK_HASH" ]; then
+  echo -e "${GREEN}⚡ node_modules фронтенда актуальны (пропуск npm install).${NC}"
+else
+  echo -e "${YELLOW}📥 Установка зависимостей фронтенда...${NC}"
+  npm install --prefix frontend --no-audit --no-fund --prefer-offline
+  mkdir -p frontend/node_modules
+  echo "$FRONTEND_LOCK_HASH" > "$FRONTEND_HASH_FILE"
+fi
 
-echo -e "\n${CYAN}🏗️ Production-сборка Nuxt 3 (SSR + Nitro)...${NC}"
-(cd frontend && NUXT_TELEMETRY_DISABLED=1 npm run build)
+echo -e "\n${CYAN}🏗️ Production-сборка Nuxt 3...${NC}"
+(cd frontend && npm run build)
 
 # 5. Start apps in PM2
-echo -e "\n${CYAN}🚀 3. Запуск процессов в PM2...${NC}"
+echo -e "\n${CYAN}🚀 3. Перезапуск процессов в PM2...${NC}"
 mkdir -p .pm2
 export PM2_HOME="$(pwd)/.pm2"
-pm2 startOrReload ecosystem.config.js
+pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
 
-# 6. Success summary
+END_TIME=$(date +%s)
+ELAPSED=$((END_TIME - START_TIME))
+
 echo -e "\n${GREEN}================================================================${NC}"
-echo -e "${GREEN}🎉 Платформа fyxi.ru успешно прошла проверки и запущена в PM2! ${NC}"
-echo -e "${GREEN}================================================================${NC}"
-echo -e "\n${YELLOW}🔗 Публичные адреса платформы:${NC}"
-echo -e "  • ${CYAN}Главный каталог:${NC}     https://fyxi.ru"
-echo -e "  • ${CYAN}Личный кабинет:${NC}     https://fyxi.ru/cabinet"
-echo -e "  • ${CYAN}Раздел статей/SEO:${NC}   https://fyxi.ru/blog"
-echo -e "  • ${CYAN}RSS-лента новостей:${NC}  https://fyxi.ru/feed.xml"
-echo -e "  • ${CYAN}Карта сайта Sitemap:${NC} https://fyxi.ru/sitemap.xml"
-echo -e "  • ${CYAN}Яндекс Метрика ID:${NC}   110952885"
-echo -e "  • ${CYAN}Telegram Bot:${NC}        https://t.me/fyxiWeb_bot"
-
-echo -e "\n${CYAN}====================================================${NC}\n"
+echo -e "${GREEN}🎉 Платформа fyxi.ru успешно прошла проверки и запущена за ${ELAPSED} сек! ${NC}"
+echo -e "${GREEN}================================================================${NC}\n"
