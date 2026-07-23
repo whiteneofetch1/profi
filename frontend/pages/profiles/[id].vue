@@ -290,7 +290,7 @@ function handleAddToCart() {
 
             <!-- Header name & avatar -->
             <div class="avatar-holder">
-              <img v-if="profile.avatarUrl" :src="profile.avatarUrl" :alt="profile.firstName" class="profile-avatar-img" />
+              <NuxtImg v-if="profile.avatarUrl" :src="profile.avatarUrl" :alt="profile.firstName" class="profile-avatar-img" format="webp" />
               <span v-else class="initials">{{ profile.firstName[0] }}{{ profile.lastName[0] }}</span>
               <span v-if="profile.isVerified" class="verified-seal" title="Верифицированный профиль">✓ Проверен</span>
             </div>
@@ -391,12 +391,13 @@ function handleAddToCart() {
                 <div class="card-glow-overlay"></div>
                 
                 <div class="showcase-image-box" style="height: 240px; overflow: hidden; position: relative;">
-                  <img 
+                  <NuxtImg 
                     v-if="work.coverUrl"
                     :src="work.coverUrl" 
                     :alt="`${work.title} — веб-дизайн выполненный специалистом ${profile.firstName} ${profile.lastName} на платформе Tilda`" 
                     class="showcase-image"
                     loading="lazy"
+                    format="webp"
                     style="width: 100%; height: 100%; object-fit: cover;"
                   />
                   <div v-else style="background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%); display: flex; align-items: center; justify-content: center; color: #a5b4fc; height: 100%; font-weight: 600; font-size: 1.1rem; padding: 1rem; text-align: center;">
@@ -608,7 +609,7 @@ function handleAddToCart() {
 
         <div class="modal-body lightbox-body">
           <div v-if="selectedCaseForLightbox.coverUrl" class="lightbox-image-box">
-            <img :src="selectedCaseForLightbox.coverUrl" :alt="selectedCaseForLightbox.title" class="lightbox-img" />
+            <NuxtImg :src="selectedCaseForLightbox.coverUrl" :alt="selectedCaseForLightbox.title" class="lightbox-img" format="webp" />
           </div>
           <p class="lightbox-desc">{{ selectedCaseForLightbox.description }}</p>
           <div class="lightbox-tags" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">

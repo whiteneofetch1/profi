@@ -3,7 +3,20 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@vueuse/nuxt',
+    '@nuxt/image',
+    '@nuxtjs/seo'
   ],
+
+  site: {
+    url: 'https://fyxi.ru',
+    name: 'fyxi — Премиальный маркетплейс дизайнеров и разработчиков',
+    description: 'fyxi.ru — маркетплейс проверенных веб-дизайнеров и разработчиков Zero Block. Покупайте прямые контакты специалистов без комиссий.',
+    defaultLocale: 'ru',
+  },
+
+  robots: {
+    disallow: ['/cabinet/**', '/admin/**']
+  },
 
   css: [
     '~/assets/css/main.css'
@@ -81,7 +94,8 @@ export default defineNuxtConfig({
   },
 
   experimental: {
-    appManifest: false,
+    // Включаем appManifest (по умолчанию true) для автоматической обработки ошибок загрузки чанков
+    appManifest: true,
   },
 
   devtools: { enabled: false }

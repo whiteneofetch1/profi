@@ -20,7 +20,9 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@nuxt/image": "^2.0.0",
     "@nuxt/test-utils": "^4.0.3",
+    "@nuxtjs/seo": "^5.3.6",
     "@playwright/test": "^1.61.1",
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/test-utils": "^2.4.11",

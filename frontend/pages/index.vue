@@ -145,17 +145,19 @@ const tiltStyle = ref<{ [key: string]: string }>({});
 
 function handleTilt(e: MouseEvent, profileId: string) {
   const card = e.currentTarget as HTMLElement;
+  if (!card) return;
+
+  // READ (чтение геометрии) - выполняем до rAF, чтобы избежать принудительной компоновки
+  const rect = card.getBoundingClientRect();
   const clientX = e.clientX;
   const clientY = e.clientY;
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  const width = rect.width;
+  const height = rect.height;
   
+  // WRITE (мутация стейта) - выполняем внутри rAF
   requestAnimationFrame(() => {
-    if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-    const width = rect.width;
-    const height = rect.height;
-    
     const rotateX = ((y / height) - 0.5) * -10;
     const rotateY = ((x / width) - 0.5) * 10;
     
@@ -203,96 +205,33 @@ useSeoMeta({
   keywords: 'fyxi, IT подбор, фриланс, веб-дизайнеры Tilda, разработчики Zero Block, база специалистов, контакты фрилансеров, заказать сайт на тильде, zero block'
 });
 
-const websiteSchema = computed(() => ({
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  'name': 'fyxi',
-  'url': url.origin,
-  'potentialAction': {
-    '@type': 'SearchAction',
-    'target': `${url.origin}/?search={search_term_string}`,
-    'query-input': 'required name=search_term_string'
-  }
-}));
-
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  'name': 'fyxi',
-  'url': 'https://fyxi.ru',
-  'logo': 'https://fyxi.ru/favicon.svg',
-  'description': 'Каталог проверенных IT-специалистов. Покупайте контакты разработчиков и дизайнеров напрямую на fyxi.ru.'
-};
-
-const collectionSchema = computed(() => {
-  if (!profiles.value || profiles.value.length === 0) return null;
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    'name': 'Каталог специалистов | fyxi',
-    'description': 'Список лучших дизайнеров и разработчиков.',
-    'mainEntity': {
-      '@type': 'ItemList',
-      'numberOfItems': filteredProfiles.value.length,
-      'itemListElement': filteredProfiles.value.slice(0, 12).map((p, index) => ({
-        '@type': 'ListItem',
-        'position': index + 1,
-        'url': `${url.origin}/profiles/${getProfileSlug(p)}`,
-        'name': `${p.firstName} ${p.lastName} — ${p.title}`
-      }))
-    }
-  };
-});
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  'mainEntity': [
-    {
-      '@type': 'Question',
-      'name': 'Как выкупить контакты веб-дизайнера или разработчика на fyxi?',
-      'acceptedAnswer': {
-        '@type': 'Answer',
-        'text': 'Выберите подходящего специалиста в каталоге fyxi.ru, добавьте его карточку в корзину и оплатите мгновенно. Контакты (Telegram, Email, телефон) станут полностью открыты.'
-      }
-    },
-    {
-      '@type': 'Question',
-      'name': 'Берет ли маркетплейс fyxi комиссию за сделки?',
-      'acceptedAnswer': {
-        '@type': 'Answer',
-        'text': 'Нет! Платформа fyxi функционирует по модели Pay-Per-Contact: вы платите фиксированные 500 ₽ за прямой контакт исполнителя и работаете с ним напрямую без посредников.'
-      }
-    },
-    {
-      '@type': 'Question',
-      'name': 'Как специалисты проходят модерацию на fyxi?',
-      'acceptedAnswer': {
-        '@type': 'Answer',
-        'text': 'Каждая анкета и портфолио работы в Zero Block проверяются арт-директорами платформы fyxi перед публикацией в общем каталоге.'
-      }
-    }
-  ]
-};
-
 const canonicalUrl = computed(() => 'https://fyxi.ru/');
 
 useHead({
   link: [
     { rel: 'canonical', href: canonicalUrl }
-  ],
-  script: computed(() => {
-    const scripts = [
-      { type: 'application/ld+json', children: JSON.stringify(organizationSchema) },
-      { type: 'application/ld+json', children: JSON.stringify(websiteSchema.value) },
-      { type: 'application/ld+json', children: JSON.stringify(faqSchema) }
-    ];
-    if (collectionSchema.value) {
-      scripts.push({ type: 'application/ld+json', children: JSON.stringify(collectionSchema.value) });
-    }
-    return scripts;
-  })
+  ]
 });
+
+useSchemaOrg([
+  defineWebSite({
+    name: 'fyxi',
+    url: url.origin,
+    potentialAction: [
+      {
+        '@type': 'SearchAction',
+        target: `${url.origin}/?search={search_term_string}`,
+        'query-input': 'required name=search_term_string'
+      }
+    ]
+  }),
+  defineOrganization({
+    name: 'fyxi',
+    url: 'https://fyxi.ru',
+    logo: 'https://fyxi.ru/favicon.svg',
+    description: 'Каталог проверенных IT-специалистов. Покупайте контакты разработчиков и дизайнеров напрямую на fyxi.ru.'
+  })
+]);
 
 function cleanName(name: string) {
   return (name || '').replace(/\s*\d+/g, '').trim();
@@ -443,7 +382,7 @@ function navigateToProfile(event: MouseEvent, profile: any) {
             <!-- Card Header -->
             <div class="talent-card-header">
               <div class="avatar-frame">
-                <img v-if="profile.avatarUrl" :src="profile.avatarUrl" :alt="profile.firstName" class="card-avatar-img" />
+                <NuxtImg v-if="profile.avatarUrl" :src="profile.avatarUrl" :alt="profile.firstName" class="card-avatar-img" loading="lazy" width="60" height="60" format="webp" />
                 <template v-else>{{ getAvatarSymbol(profile.specialization) }}</template>
                 <div class="avatar-glow"></div>
               </div>

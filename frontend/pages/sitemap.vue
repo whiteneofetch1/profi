@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAsyncData, useHead, useSeoMeta, useRuntimeConfig, useRequestURL } from '#imports';
 import { CITIES_LIST } from '~/utils/cities';
+import { SKILLS_LIST } from '~/utils/skills';
 
 const config = useRuntimeConfig();
 const url = useRequestURL();
@@ -72,6 +73,16 @@ useHead({
               <NuxtLink :to="`/profiles/${profile.slug || profile.id}`">
                 {{ profile.firstName }} {{ profile.lastName }} — {{ profile.title }}
               </NuxtLink>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Матрица Навыков -->
+        <section class="sitemap-section">
+          <h2>🎯 Заказать услуги (Навыки)</h2>
+          <ul class="sitemap-list">
+            <li v-for="skill in SKILLS_LIST" :key="skill.slug">
+              <NuxtLink :to="`/hire/${skill.slug}`">Заказать {{ skill.nameInCase }}</NuxtLink>
             </li>
           </ul>
         </section>
