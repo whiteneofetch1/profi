@@ -67,16 +67,9 @@ else
   echo "$BACKEND_LOCK_HASH" > "$BACKEND_HASH_FILE"
 fi
 
-PRISMA_HASH=$(get_file_hash "backend/prisma/schema.prisma")
-PRISMA_HASH_FILE="backend/node_modules/.prisma_schema_hash"
-
-if [ -d "backend/node_modules/@prisma/client" ] && [ -f "$PRISMA_HASH_FILE" ] && [ "$(cat "$PRISMA_HASH_FILE")" == "$PRISMA_HASH" ]; then
-  echo -e "${GREEN}⚡ Prisma Client актуален.${NC}"
-else
-  (cd backend && npx prisma generate)
-  (cd backend && npx prisma db push || echo -e "${YELLOW}⚠️ Пропуск db push.${NC}")
-  echo "$PRISMA_HASH" > "$PRISMA_HASH_FILE"
-fi
+(cd backend && npx prisma generate)
+(cd backend && npx prisma db push || echo -e "${YELLOW}⚠️ Пропуск db push.${NC}")
+(cd backend && npx prisma db seed || echo -e "${YELLOW}⚠️ Пропуск db seed.${NC}")
 
 echo -e "\n${CYAN}🔨 Сборка бэкенда (tsc)...${NC}"
 (cd backend && npm run build)
