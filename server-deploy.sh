@@ -87,7 +87,6 @@ fi
 echo -e "${CYAN}⚙️ Проверка базы данных и генерация Prisma Client...${NC}"
 (cd backend && npx prisma generate)
 (cd backend && npx prisma db push || echo -e "${YELLOW}⚠️ Пропуск db push.${NC}")
-(cd backend && npx prisma db seed || echo -e "${YELLOW}⚠️ Пропуск db seed (данные уже засижены).${NC}")
 
 echo -e "${CYAN}🔨 Сборка бэкенда (tsc)...${NC}"
 (cd backend && npm run build)
