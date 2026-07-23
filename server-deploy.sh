@@ -96,9 +96,9 @@ echo -e "${CYAN}🏗️ Production-сборка Nuxt 3 (SSR + Nitro)...${NC}"
 
 # 6. Перезапуск и проверка здоровья PM2
 echo -e "\n${CYAN}🚀 3. Перезапуск процессов в PM2...${NC}"
-echo -e "${CYAN}🧹 Принудительное освобождение портов 5010 и 5011 (kill -9)...${NC}"
+echo -e "${CYAN}🧹 Удаление старого конфликтующего процесса 'api' в PM2...${NC}"
+pm2 delete api 2>/dev/null || true
 sudo fuser -k -9 5010/tcp 5011/tcp 2>/dev/null || fuser -k -9 5010/tcp 5011/tcp 2>/dev/null || true
-pm2 delete all 2>/dev/null || true
 
 pm2 start ecosystem.config.js
 pm2 save
