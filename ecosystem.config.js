@@ -22,6 +22,7 @@ module.exports = {
         NODE_ENV: "production",
         PORT: 5011,
         HOST: "0.0.0.0",
+        NITRO_HOST: "0.0.0.0",
         NUXT_PUBLIC_API_URL: "https://fyxi.ru/api"
       }
     }
