@@ -97,6 +97,12 @@ export async function sendEmailNotification(to: string, subject: string, htmlCon
     return true;
   } catch (err: any) {
     console.error('❌ Failed to send Email notification:', err?.message || err);
+    sendTelegramErrorAlert({
+      source: 'GMAIL_SMTP_SERVICE',
+      message: `Ошибка отправки письма (${to}): ${err?.message || err}`,
+      statusCode: 500,
+      stack: err?.stack,
+    }).catch(() => {});
     return false;
   }
 }
