@@ -95,12 +95,29 @@ describe('E2E Short ID Slugs & Dynamic Fallback Routing', () => {
     },
     unlockedProfile: {
       findMany: async () => [],
+      findFirst: async (args: any) => {
+        if (args?.where?.purchase?.clientId === 'client-1') {
+          return { id: 'unlock-record' };
+        }
+        return null;
+      },
     },
     review: {
+      findFirst: async (args: any) => {
+        return mockReviews.find(r => r.devProfileId === args.where.devProfileId && r.clientId === args.where.clientId) || null;
+      },
       create: async (args: any) => {
         const rev = { id: `rev-${Date.now()}`, ...args.data, createdAt: new Date() };
         mockReviews.push(rev);
         return rev;
+      },
+      update: async (args: any) => {
+        const index = mockReviews.findIndex(r => r.id === args.where.id);
+        if (index > -1) {
+          mockReviews[index] = { ...mockReviews[index], ...args.data };
+          return mockReviews[index];
+        }
+        return null;
       },
       findMany: async (args: any) => mockReviews.filter(r => r.devProfileId === args.where.devProfileId),
     }
@@ -146,9 +163,11 @@ describe('E2E Short ID Slugs & Dynamic Fallback Routing', () => {
   });
 
   it('should allow posting verified customer reviews via short ID slug', async () => {
+    const clientToken = app.jwt.sign({ id: 'client-1', role: 'CLIENT' });
     const response = await app.inject({
       method: 'POST',
       url: '/profiles/ilya-29-makarov-9719fec7/reviews',
+      headers: { Cookie: `token=${clientToken}` },
       payload: {
         authorName: 'Екатерина (ООO Редизайн)',
         rating: 5,
