@@ -2,10 +2,9 @@
 node_modules/
 .pnpm-store/
 
-# Environment files & secrets
-.env
-.env.*
-!.env.example
+# Environment files
+# .env files are tracked per user request
+
 
 # Nuxt 3 & Frontend build artifacts
 frontend/.nuxt/
