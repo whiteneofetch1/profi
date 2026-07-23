@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# FYXI.RU — СВЕРХБЫСТРЫЙ И НАДЕЖНЫЙ ПРОД-ДЕПЛОЙ (v4.0 Ultra)
+# FYXI.RU — СВЕРХБЫСТРЫЙ И НАДЕЖНЫЙ ПРОД-ДЕПЛОЙ (v4.1 Ultra)
 # ==============================================================================
 
 set -e
@@ -19,18 +19,8 @@ export NPM_CONFIG_FUND=false
 export NUXT_TELEMETRY_DISABLED=1
 
 echo -e "${CYAN}====================================================${NC}"
-echo -e "${CYAN}   fyxi.ru — Сверхбыстрый Прод-Деплой (v4.0 Ultra)   ${NC}"
+echo -e "${CYAN}   fyxi.ru — Сверхбыстрый Прод-Деплой (v4.1 Ultra)   ${NC}"
 echo -e "${CYAN}====================================================${NC}"
-
-get_file_hash() {
-  if command -v md5sum &> /dev/null; then
-    md5sum "$1" 2>/dev/null | awk '{print $1}'
-  elif command -v md5 &> /dev/null; then
-    md5 -q "$1" 2>/dev/null
-  else
-    stat -c %Y "$1" 2>/dev/null || echo "1"
-  fi
-}
 
 # 0. Git code sync
 echo -e "\n${CYAN}🔄 Получение свежих обновлений из Git...${NC}"
@@ -69,18 +59,8 @@ if command -v docker &> /dev/null && [ -f docker-compose.yml ]; then
 fi
 
 # 4. Process backend dependencies, prisma and build
-echo -e "\n${CYAN}📦 1. Проверка бэкенда...${NC}"
-BACKEND_LOCK_HASH=$(get_file_hash "backend/package-lock.json")
-BACKEND_HASH_FILE="backend/node_modules/.installed_hash"
-
-if [ -d "backend/node_modules" ] && [ -f "$BACKEND_HASH_FILE" ] && [ "$(cat "$BACKEND_HASH_FILE")" == "$BACKEND_LOCK_HASH" ]; then
-  echo -e "${GREEN}⚡ node_modules бэкенда актуальны (пропуск npm install).${NC}"
-else
-  echo -e "${YELLOW}📥 Установка зависимостей бэкенда...${NC}"
-  npm install --prefix backend --no-audit --no-fund --prefer-offline
-  mkdir -p backend/node_modules
-  echo "$BACKEND_LOCK_HASH" > "$BACKEND_HASH_FILE"
-fi
+echo -e "\n${CYAN}📦 1. Установка зависимостей бэкенда...${NC}"
+npm install --prefix backend --no-audit --no-fund --prefer-offline
 
 (cd backend && npx prisma generate)
 if ! (cd backend && npx prisma db push); then
@@ -91,18 +71,8 @@ echo -e "\n${CYAN}🔨 Сборка бэкенда (tsc)...${NC}"
 (cd backend && npm run build)
 
 # 5. Process frontend dependencies, cache cleanup and production build
-echo -e "\n${CYAN}📦 2. Проверка Nuxt 3 фронтенда...${NC}"
-FRONTEND_LOCK_HASH=$(get_file_hash "frontend/package-lock.json")
-FRONTEND_HASH_FILE="frontend/node_modules/.installed_hash"
-
-if [ -d "frontend/node_modules" ] && [ -f "$FRONTEND_HASH_FILE" ] && [ "$(cat "$FRONTEND_HASH_FILE")" == "$FRONTEND_LOCK_HASH" ]; then
-  echo -e "${GREEN}⚡ node_modules фронтенда актуальны (пропуск npm install).${NC}"
-else
-  echo -e "${YELLOW}📥 Установка зависимостей фронтенда...${NC}"
-  npm install --prefix frontend --no-audit --no-fund --prefer-offline
-  mkdir -p frontend/node_modules
-  echo "$FRONTEND_LOCK_HASH" > "$FRONTEND_HASH_FILE"
-fi
+echo -e "\n${CYAN}📦 2. Установка зависимостей Nuxt 3 фронтенда...${NC}"
+npm install --prefix frontend --no-audit --no-fund --prefer-offline
 
 echo -e "${CYAN}🧹 Очистка устаревшего кэша Nitro SWR перед сборкой...${NC}"
 rm -rf frontend/.output frontend/.nuxt frontend/.data frontend/node_modules/.cache 2>/dev/null || true
