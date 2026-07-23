@@ -95,8 +95,8 @@ export default defineNuxtConfig({
   },
 
   experimental: {
-    // Включаем appManifest (по умолчанию true) для автоматической обработки ошибок загрузки чанков
-    appManifest: true,
+    // Отключаем appManifest из-за ошибки #app-manifest при сборке
+    appManifest: false,
   },
 
   devtools: { enabled: false }
