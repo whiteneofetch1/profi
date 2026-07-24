@@ -1,21 +1,21 @@
-# --- BUILD STAGE ---
-FROM node:18-alpine AS builder
+FROM node:20-alpine
+
+# Устанавливаем openssl для Prisma
+RUN apk add --no-cache openssl
+
 WORKDIR /app
+
+# Копируем package.json и устанавливаем зависимости
 COPY package*.json ./
-RUN npm ci
-COPY . .
+RUN npm install
+
+# Копируем схему Prisma и генерируем клиент
+COPY prisma ./prisma
 RUN npx prisma generate
+
+# Копируем исходники и собираем
+COPY . .
 RUN npm run build
 
-# --- PRODUCTION STAGE ---
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-
-EXPOSE 3001
-CMD ["npm", "run", "start"]
+# Запускаем скомпилированный код
+CMD ["npm", "start"]

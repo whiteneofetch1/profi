@@ -1,77 +1,26 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: fyxi_postgres
-    restart: always
-    environment:
-      POSTGRES_DB: fyxi
-      POSTGRES_USER: ${DB_USER:-fyxi_db_admin}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-fyxi_secure_pass_2026}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - fyxi_network
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: fyxi_backend
-    restart: always
-    environment:
-      PORT: 3001
-      NODE_ENV: ${NODE_ENV:-production}
-      DATABASE_URL: postgresql://${DB_USER:-fyxi_db_admin}:${DB_PASSWORD:-fyxi_secure_pass_2026}@postgres:5432/fyxi?schema=public
-      JWT_SECRET: ${JWT_SECRET:-jwt_super_secret_key_2026_fyxi}
-      YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID:-mock_shop_id}
-      YOOKASSA_SECRET_KEY: ${YOOKASSA_SECRET_KEY:-mock_secret_key}
-      FRONTEND_URL: https://${DOMAIN:-fyxi.ru}
-    depends_on:
-      - postgres
-    networks:
-      - fyxi_network
-
+    container_name: fyxi-backend
+    restart: unless-stopped
+    network_mode: "host"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/uploads:/app/uploads
+      
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: fyxi_frontend
-    restart: always
-    environment:
-      PORT: 3000
-      NODE_ENV: ${NODE_ENV:-production}
-      API_URL: http://backend:3001
-      PUBLIC_API_URL: https://${DOMAIN:-fyxi.ru}/api
+    container_name: fyxi-frontend
+    restart: unless-stopped
+    network_mode: "host"
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
-    networks:
-      - fyxi_network
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: fyxi_proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - frontend
-    networks:
-      - fyxi_network
-
-networks:
-  fyxi_network:
-    driver: bridge
-
-volumes:
-  pgdata:
-  caddy_data:
-  caddy_config:

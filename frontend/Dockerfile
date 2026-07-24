@@ -1,16 +1,14 @@
-# --- BUILD STAGE ---
-FROM node:18-alpine AS builder
+FROM node:20-alpine
+
 WORKDIR /app
+
+# Копируем package.json и устанавливаем зависимости
 COPY package*.json ./
-RUN npm ci
+RUN npm install
+
+# Копируем исходники и собираем
 COPY . .
 RUN npm run build
 
-# --- RUNTIME STAGE ---
-FROM node:18-alpine
-WORKDIR /app
-COPY --from=builder /app/.output ./output
-
-ENV PORT=3000
-EXPOSE 3000
-CMD ["node", "output/server/index.mjs"]
+# Запускаем Nitro сервер
+CMD ["node", ".output/server/index.mjs"]
