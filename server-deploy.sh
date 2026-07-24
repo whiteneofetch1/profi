@@ -94,31 +94,9 @@ rm -rf frontend/.output frontend/.nuxt frontend/.data frontend/node_modules/.cac
 echo -e "${CYAN}🏗️ Production-сборка Nuxt 3 (SSR + Nitro)...${NC}"
 (cd frontend && npm run build)
 
-kill_port() {
-  local PORT=$1
-  if command -v lsof &> /dev/null; then
-    local PIDS=$(lsof -t -i:${PORT} 2>/dev/null || true)
-    if [ -n "$PIDS" ]; then
-      kill -9 $PIDS 2>/dev/null || true
-    fi
-  fi
-  if command -v ss &> /dev/null; then
-    local SSPIDS=$(ss -lptn "sport = :${PORT}" 2>/dev/null | grep -oP 'pid=\K\d+' || true)
-    if [ -n "$SSPIDS" ]; then
-      kill -9 $SSPIDS 2>/dev/null || true
-    fi
-  fi
-  npx --yes kill-port ${PORT} 2>/dev/null || true
-}
 
 # 6. Перезапуск и проверка здоровья PM2
 echo -e "\n${CYAN}🚀 3. Перезапуск процессов в PM2...${NC}"
-echo -e "${CYAN}🧹 Удаление старых конфликтующих процессов в PM2...${NC}"
-pm2 delete api 2>/dev/null || true
-pm2 delete 0 2>/dev/null || true
-echo -e "${CYAN}🧹 Принудительное освобождение портов 5010 и 5011 (kill-port/lsof/ss)...${NC}"
-kill_port 5010
-kill_port 5011
 
 pm2 start ecosystem.config.js
 pm2 save
